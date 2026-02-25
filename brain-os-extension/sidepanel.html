@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: system-ui, -apple-system, sans-serif; padding: 20px; background: #F8FAFC; color: #1E293B; }
+    .header { font-weight: 800; font-size: 22px; color: #059669; margin-bottom: 20px; border-bottom: 2px solid #E2E8F0; padding-bottom: 10px; }
+    .card { background: white; padding: 16px; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 15px; }
+    .label { font-size: 10px; text-transform: uppercase; color: #64748B; font-weight: 800; letter-spacing: 0.5px; margin-bottom: 8px; display: block; }
+    #selected-text-preview { font-size: 13px; line-height: 1.5; color: #475569; font-style: italic; }
+    .btn { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #E2E8F0; background: white; cursor: pointer; font-weight: 600; font-size: 13px; text-align: left; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
+    .btn:hover { border-color: #059669; background: #F0FDF4; transform: translateY(-1px); }
+    .btn-primary { background: #059669; color: white; border: none; justify-content: center; }
+    .btn-primary:hover { background: #047857; }
+    #ai-response { margin-top: 15px; font-size: 14px; line-height: 1.6; animation: fadeIn 0.4s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .loader { border: 3px solid #f3f3f3; border-top: 3px solid #059669; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: none; margin: 20px auto; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="header">Brain Extension</div>
+  
+  <div class="card">
+    <span class="label">Context Selection</span>
+    <div id="selected-text-preview">Select text on any page...</div>
+  </div>
+
+  <button class="btn" id="btn-analogy">Indian Analogy</button>
+  <button class="btn" id="btn-rag">Neural Link</button>
+  <button class="btn btn-primary" id="btn-save">Save</button>
+
+  <div class="loader" id="loader"></div>
+  <div id="ai-response" class="card" style="display:none;"></div>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>

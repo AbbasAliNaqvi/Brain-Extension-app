@@ -1,0 +1,35 @@
+{
+    "manifest_version": 3,
+    "name": "Brain OS | Bharat Copilot",
+    "version": "4.1.0",
+    "permissions": [
+        "sidePanel",
+        "storage",
+        "activeTab",
+        "scripting",
+        "contextMenus"
+    ],
+    "host_permissions": [
+        "https://brain-extension-exng.onrender.com/*"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "side_panel": {
+        "default_path": "sidepanel.html"
+    },
+    "action": {
+        "default_popup": "popup.html",
+        "default_title": "Open Brain OS Dashboard"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "content.js"
+            ]
+        }
+    ]
+}

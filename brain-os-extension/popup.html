@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    :root { 
+      --bg: #F8FAFC; --surface: #FFFFFF; 
+      --text: #0F172A; --muted: #64748B; 
+      --border: #E2E8F0; --accent: #059669; --accent-glow: rgba(5, 150, 105, 0.15);
+    }
+    body { background-color: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; width: 380px; height: 520px; margin: 0; padding: 0; display: flex; flex-direction: column; }
+    
+    .header { padding: 16px 20px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+    .brand { font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 8px; color: var(--text); }
+    .status-dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 8px var(--accent); }
+    .container { padding: 20px; flex: 1; overflow-y: auto; }
+    
+    input, select, textarea { width: 100%; background: #FFFFFF; border: 1px solid var(--border); color: var(--text); padding: 12px; border-radius: 8px; font-size: 13px; margin-top: 6px; margin-bottom: 12px; box-sizing: border-box; outline: none; transition: all 0.2s; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02); }
+    input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+    label { font-size: 11px; text-transform: uppercase; color: var(--muted); font-weight: 700; letter-spacing: 0.5px;}
+    
+    button.primary { width: 100%; background: var(--accent); color: white; border: none; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.2); }
+    button.primary:hover { transform: translateY(-1px); background: #047857; }
+    button.primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    
+    .view { display: none; }
+    .view.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    
+    .nav { display: flex; background: var(--surface); border-top: 1px solid var(--border); }
+    .nav-btn { flex: 1; padding: 16px 0; background: none; border: none; color: var(--muted); font-weight: 600; font-size: 13px; cursor: pointer; transition: color 0.2s; border-top: 2px solid transparent; }
+    .nav-btn.active { color: var(--accent); border-top: 2px solid var(--accent); margin-top: -1px; }
+    
+    .score-row { display: flex; gap: 8px; margin-top: 16px; }
+    .score-btn { flex: 1; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 10px 0; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 13px; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .score-btn:hover { background: var(--accent); border-color: var(--accent); color: white; transform: translateY(-2px); }
+  </style>
+</head>
+<body>
+
+  <div id="auth-view" class="container view active" style="text-align: center; padding-top: 60px;">
+    <h2 style="margin-bottom: 8px; color: var(--text);">Welcome to Brain OS</h2>
+    <p style="font-size: 13px; color: var(--muted); margin-bottom: 24px;">Your intelligent vernacular copilot.</p>
+    <div style="text-align: left;"><label>Email</label><input type="email" id="email" placeholder="dev@bharat.com"></div>
+    <div style="text-align: left;"><label>Password</label><input type="password" id="password" placeholder="••••••••"></div>
+    <button id="loginBtn" class="primary">Connect Account</button>
+    <div id="error-msg" style="color: #EF4444; margin-top: 10px; font-size: 12px; font-weight: 500;"></div>
+  </div>
+
+  <div id="app-wrapper" style="display: none; height: 100%; flex-direction: column;">
+    <div class="header">
+      <div class="brand"><div class="status-dot"></div> Brain OS</div>
+      <button id="logoutBtn" style="background:none; border:none; color:#64748B; cursor:pointer; font-size:12px; font-weight: 600;">Log Out</button>
+    </div>
+
+    <div class="container">
+      <div id="view-capture" class="view active">
+        <label>Manual Context Ingestion</label>
+        <textarea id="quickNote" placeholder="Paste complex docs, code, or ideas here..." style="min-height: 100px;"></textarea>
+        <div style="display: flex; gap: 10px;">
+          <div style="flex: 1;"><label>Language</label>
+            <select id="targetLanguage"><option value="English">English</option><option value="Hinglish">Hinglish</option><option value="Hindi">Hindi (हिंदी)</option></select>
+          </div>
+          <div style="flex: 1;"><label>Workspace</label><input type="text" id="workspaceId" value="System_Design"></div>
+        </div>
+        <button id="sendNoteBtn" class="primary">Save to Vector DB</button>
+      </div>
+
+      <div id="view-search" class="view">
+        <label>Neural Recall</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="searchInput" placeholder="Search saved concepts...">
+          <button id="searchBtn" class="primary" style="width:auto; margin-top:6px; margin-bottom:12px; padding:0 15px;">🔍</button>
+        </div>
+        <div id="searchResults"></div>
+      </div>
+
+      <div id="view-review" class="view">
+        <div id="review-status" style="text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 15px; font-weight: 500;">Initializing Engine...</div>
+        <div id="flashcard-container" style="display: none;">
+          <div id="flashcard-content" style="background: var(--surface); border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); padding: 16px; border-radius: 12px; font-size: 14px; line-height: 1.6; min-height: 120px;"></div>
+          <label style="display:block; text-align: center; margin-top: 24px;">How well did you remember this?</label>
+          <div class="score-row">
+            <button class="score-btn" data-score="1">1</button>
+            <button class="score-btn" data-score="2">2</button>
+            <button class="score-btn" data-score="3">3</button>
+            <button class="score-btn" data-score="4">4</button>
+            <button class="score-btn" data-score="5">5</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav">
+      <button class="nav-btn active" data-target="view-capture">Ingest</button>
+      <button class="nav-btn" data-target="view-search">Recall</button>
+      <button class="nav-btn" data-target="view-review">Train</button>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
