@@ -1,35 +1,65 @@
 {
-    "manifest_version": 3,
-    "name": "Brain OS | Bharat Copilot",
-    "version": "4.1.0",
-    "permissions": [
-        "sidePanel",
-        "storage",
-        "activeTab",
-        "scripting",
-        "contextMenus"
-    ],
-    "host_permissions": [
-        "https://brain-extension-exng.onrender.com/*"
-    ],
-    "background": {
-        "service_worker": "background.js"
+  "manifest_version": 3,
+  "name": "Brain OS | Bharat Copilot",
+  "version": "5.1.0",
+  "description": "AI-powered Second Brain for Indian developers. Highlight, learn, save, build.",
+  "permissions": [
+    "sidePanel",
+    "storage",
+    "activeTab",
+    "scripting",
+    "contextMenus",
+    "alarms",
+    "notifications",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://brain-extension-exng.onrender.com/*",
+    "https://*.youtube.com/*",
+    "https://api.github.com/*",
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Brain OS — Bharat Copilot",
+    "default_icon": {
+      "16": "icon.png",
+      "48": "icon.png",
+      "128": "icon.png"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "commands": {
+    "open-command-palette": {
+      "suggested_key": { "default": "Ctrl+K", "mac": "Command+K" },
+      "description": "Open Brain OS Command Palette"
     },
-    "side_panel": {
-        "default_path": "sidepanel.html"
+    "quick-save": {
+      "suggested_key": { "default": "Ctrl+Shift+S", "mac": "Command+Shift+S" },
+      "description": "Quick-save selection to Brain"
     },
-    "action": {
-        "default_popup": "popup.html",
-        "default_title": "Open Brain OS Dashboard"
-    },
-    "content_scripts": [
-        {
-            "matches": [
-                "<all_urls>"
-            ],
-            "js": [
-                "content.js"
-            ]
-        }
-    ]
+    "open-sidepanel": {
+      "suggested_key": { "default": "Ctrl+Shift+B", "mac": "Command+Shift+B" },
+      "description": "Open Brain OS Side Panel"
+    }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 }

@@ -1,37 +1,945 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <style>
-    body { font-family: system-ui, -apple-system, sans-serif; padding: 20px; background: #F8FAFC; color: #1E293B; }
-    .header { font-weight: 800; font-size: 22px; color: #059669; margin-bottom: 20px; border-bottom: 2px solid #E2E8F0; padding-bottom: 10px; }
-    .card { background: white; padding: 16px; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); margin-bottom: 15px; }
-    .label { font-size: 10px; text-transform: uppercase; color: #64748B; font-weight: 800; letter-spacing: 0.5px; margin-bottom: 8px; display: block; }
-    #selected-text-preview { font-size: 13px; line-height: 1.5; color: #475569; font-style: italic; }
-    .btn { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #E2E8F0; background: white; cursor: pointer; font-weight: 600; font-size: 13px; text-align: left; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
-    .btn:hover { border-color: #059669; background: #F0FDF4; transform: translateY(-1px); }
-    .btn-primary { background: #059669; color: white; border: none; justify-content: center; }
-    .btn-primary:hover { background: #047857; }
-    #ai-response { margin-top: 15px; font-size: 14px; line-height: 1.6; animation: fadeIn 0.4s ease; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    .loader { border: 3px solid #f3f3f3; border-top: 3px solid #059669; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; display: none; margin: 20px auto; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-  </style>
-</head>
-<body>
-  <div class="header">Brain Extension</div>
-  
-  <div class="card">
-    <span class="label">Context Selection</span>
-    <div id="selected-text-preview">Select text on any page...</div>
-  </div>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Brain OS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-  <button class="btn" id="btn-analogy">Indian Analogy</button>
-  <button class="btn" id="btn-rag">Neural Link</button>
-  <button class="btn btn-primary" id="btn-save">Save</button>
+      :root {
+        --bg: #0a0a0a;
+        --surface: #111111;
+        --elevated: #181818;
+        --border: #222222;
+        --border2: #2a2a2a;
+        --text: #e5e5e5;
+        --muted: #888888;
+        --faint: #444444;
+        --accent: #10b981;
+        --accent-d: rgba(16, 185, 129, 0.1);
+        --indigo: #6366f1;
+        --red: #ef4444;
+        --font: "Inter", -apple-system, system-ui, sans-serif;
+        --mono: "JetBrains Mono", "Fira Code", "Courier New", monospace;
+        --r: 6px;
+      }
 
-  <div class="loader" id="loader"></div>
-  <div id="ai-response" class="card" style="display:none;"></div>
+      html,
+      body {
+        height: 100%;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font);
+        font-size: 13px;
+      }
+      ::-webkit-scrollbar {
+        width: 4px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border2);
+        border-radius: 4px;
+      }
+      body {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
 
-  <script src="sidepanel.js"></script>
-</body>
+      .sp-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 11px 14px;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+        background: rgba(10, 10, 10, 0.98);
+        position: sticky;
+        top: 0;
+        z-index: 50;
+      }
+
+      .sp-brand {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-weight: 700;
+        font-size: 14px;
+        letter-spacing: -0.3px;
+      }
+
+      .sp-logo {
+        width: 24px;
+        height: 24px;
+        border: 1px solid var(--border2);
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        background: var(--surface);
+      }
+
+      .sp-header-chips {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .chip {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 10.5px;
+        font-weight: 600;
+        padding: 3px 8px;
+        border-radius: 4px;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        background: var(--surface);
+      }
+
+      .chip.green {
+        color: var(--accent);
+        border-color: rgba(16, 185, 129, 0.3);
+        background: rgba(16, 185, 129, 0.06);
+      }
+      .chip .dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+
+      .sp-main {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .ctx-card {
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        background: var(--surface);
+        overflow: hidden;
+        transition: border-color 0.2s;
+      }
+
+      .ctx-card.active {
+        border-color: var(--border2);
+      }
+
+      .ctx-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .ctx-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+
+      .live-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--accent);
+        animation: blink 2s ease-in-out infinite;
+      }
+
+      @keyframes blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.3;
+        }
+      }
+
+      .code-tag {
+        font-size: 9px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: var(--indigo);
+        background: rgba(99, 102, 241, 0.1);
+        border: 1px solid rgba(99, 102, 241, 0.25);
+        border-radius: 3px;
+        padding: 1px 5px;
+        display: none;
+      }
+
+      .ctx-chars {
+        font-size: 10px;
+        color: var(--faint);
+      }
+
+      .ctx-body {
+        padding: 10px 12px;
+        min-height: 44px;
+      }
+
+      #sel-preview {
+        font-size: 12.5px;
+        line-height: 1.6;
+        color: var(--muted);
+        font-style: italic;
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .ctx-placeholder {
+        color: var(--faint);
+        font-size: 12px;
+        font-style: normal;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .ws-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 10px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+      }
+
+      .ws-tag {
+        font-size: 9.5px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: var(--faint);
+        flex-shrink: 0;
+      }
+
+      #ws-input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--text);
+        font-size: 12.5px;
+        font-family: var(--font);
+        font-weight: 500;
+        min-width: 0;
+      }
+
+      #ws-input::placeholder {
+        color: var(--faint);
+      }
+      #ws-input::-webkit-calendar-picker-indicator {
+        filter: invert(0.4);
+      }
+
+      #ws-datalist option {
+        background: var(--elevated);
+      }
+
+      .action-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 6px;
+      }
+
+      .ab {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        padding: 10px 4px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        cursor: pointer;
+        transition:
+          border-color 0.15s,
+          background 0.15s;
+        color: var(--muted);
+        font-family: var(--font);
+        font-size: 10.5px;
+        font-weight: 600;
+        text-align: center;
+      }
+
+      .ab:hover {
+        border-color: var(--border2);
+        background: var(--elevated);
+        color: var(--text);
+      }
+      .ab:active {
+        transform: scale(0.97);
+      }
+      .ab.running {
+        border-color: var(--accent);
+        background: var(--accent-d);
+        color: var(--accent);
+      }
+      .ab.save-ab:hover {
+        border-color: rgba(99, 102, 241, 0.4);
+        background: rgba(99, 102, 241, 0.06);
+        color: var(--indigo);
+      }
+
+      .ab-icon {
+        font-size: 16px;
+      }
+      .ab-snap {
+        border-style: dashed;
+      }
+      .ab-snap:hover {
+        border-style: solid;
+      }
+
+      .kb-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: center;
+        padding: 2px 0;
+        color: var(--faint);
+        font-size: 10px;
+      }
+
+      .kb {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 3px;
+        padding: 1px 5px;
+        font-size: 9px;
+        font-family: var(--mono);
+        color: var(--muted);
+      }
+
+      #sp-loader {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        padding: 24px;
+      }
+
+      .loader-ring {
+        width: 28px;
+        height: 28px;
+        border: 2px solid var(--border2);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .loader-msg {
+        font-size: 11.5px;
+        color: var(--muted);
+        font-weight: 500;
+      }
+
+      .resp-card {
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        overflow: hidden;
+        animation: fadeUp 0.2s ease;
+      }
+
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .resp-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        background: var(--surface);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .resp-mode {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: var(--accent);
+      }
+
+      .resp-actions {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .icon-btn {
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 3px 8px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 500;
+        cursor: pointer;
+        font-family: var(--font);
+        transition:
+          border-color 0.15s,
+          color 0.15s;
+      }
+
+      .icon-btn:hover {
+        border-color: var(--border2);
+        color: var(--text);
+      }
+
+      .resp-body {
+        padding: 12px;
+        font-size: 13px;
+        line-height: 1.75;
+        color: var(--text);
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      .resp-body b {
+        color: var(--accent);
+        font-weight: 600;
+      }
+      .resp-body strong {
+        color: #ddd;
+        font-weight: 600;
+        display: block;
+        margin-top: 10px;
+      }
+      .resp-body em {
+        color: var(--muted);
+        font-style: italic;
+      }
+
+      .resp-body code {
+        background: rgba(0, 0, 0, 0.6);
+        color: #a3e635;
+        font-family: var(--mono);
+        font-size: 11.5px;
+        padding: 1px 5px;
+        border-radius: 3px;
+      }
+
+      .resp-body pre {
+        background: #070707;
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        padding: 12px;
+        overflow-x: auto;
+        font-family: var(--mono);
+        font-size: 11.5px;
+        color: #a3e635;
+        line-height: 1.65;
+        margin: 8px 0;
+      }
+
+      .resp-body pre .copy-code-btn {
+        float: right;
+        background: var(--surface);
+        border: 1px solid var(--border2);
+        border-radius: 3px;
+        padding: 2px 8px;
+        color: var(--muted);
+        font-size: 10px;
+        font-family: var(--font);
+        cursor: pointer;
+        margin-bottom: 4px;
+      }
+
+      .cursor {
+        display: inline-block;
+        width: 2px;
+        height: 14px;
+        background: var(--text);
+        vertical-align: text-bottom;
+        margin-left: 1px;
+        animation: cursor-blink 0.9s step-end infinite;
+      }
+
+      @keyframes cursor-blink {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0;
+        }
+      }
+
+      .mermaid-wrapper {
+        background: #070707;
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        padding: 12px;
+        overflow-x: auto;
+        margin: 8px 0;
+      }
+
+      .mermaid-wrapper svg {
+        max-width: 100%;
+        background: transparent !important;
+        color: var(--text);
+      }
+
+      .snap-preview {
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        overflow: hidden;
+      }
+
+      .snap-preview img {
+        width: 100%;
+        max-height: 180px;
+        object-fit: cover;
+        display: block;
+      }
+
+      .snap-label {
+        padding: 6px 10px;
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: var(--muted);
+        background: var(--surface);
+        border-top: 1px solid var(--border);
+      }
+      .neural-section {
+        animation: fadeUp 0.25s ease 0.1s both;
+      }
+
+      .section-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 7px;
+        cursor: pointer;
+      }
+
+      .section-row-left {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .sec-label {
+        font-size: 9.5px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--faint);
+      }
+
+      .sec-count {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--accent);
+        background: var(--accent-d);
+        border-radius: 3px;
+        padding: 1px 6px;
+      }
+
+      .chevron {
+        font-size: 10px;
+        color: var(--faint);
+        transition: transform 0.2s;
+      }
+      .chevron.open {
+        transform: rotate(180deg);
+      }
+
+      .mem-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        padding: 10px 12px;
+        margin-bottom: 6px;
+        cursor: pointer;
+        transition: border-color 0.15s;
+        animation: fadeUp 0.2s ease both;
+      }
+
+      .mem-card:hover {
+        border-color: var(--border2);
+      }
+
+      .mem-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 4px;
+      }
+      .mem-text {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.55;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        flex: 1;
+      }
+      .mem-score {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--accent);
+        background: var(--accent-d);
+        border-radius: 3px;
+        padding: 1px 6px;
+        white-space: nowrap;
+      }
+      .mem-meta {
+        font-size: 10px;
+        color: var(--faint);
+      }
+
+      .save-ok {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        background: rgba(16, 185, 129, 0.06);
+        border-radius: var(--r);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--accent);
+        animation: fadeUp 0.2s ease;
+      }
+
+      .err-card {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 10px 12px;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        background: rgba(239, 68, 68, 0.05);
+        border-radius: var(--r);
+        font-size: 12px;
+        color: #fca5a5;
+      }
+
+      .lang-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 10px;
+        border: 1px solid var(--border);
+        border-radius: var(--r);
+        background: var(--surface);
+      }
+
+      .lang-tag {
+        font-size: 9.5px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: var(--faint);
+        flex-shrink: 0;
+      }
+
+      #lang-select {
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--text);
+        font-size: 12px;
+        font-family: var(--font);
+        cursor: pointer;
+      }
+
+      #lang-select option {
+        background: var(--elevated);
+      }
+
+      #sp-gate {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        padding: 24px;
+        text-align: center;
+        gap: 10px;
+      }
+
+      .gate-icon {
+        font-size: 32px;
+      }
+      .gate-title {
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .gate-sub {
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.6;
+        max-width: 220px;
+      }
+      .gate-btn {
+        padding: 9px 20px;
+        background: var(--text);
+        color: var(--bg);
+        border: none;
+        border-radius: var(--r);
+        font-size: 12.5px;
+        font-weight: 700;
+        cursor: pointer;
+        font-family: var(--font);
+        margin-top: 4px;
+        transition: opacity 0.15s;
+      }
+      .gate-btn:hover {
+        opacity: 0.85;
+      }
+
+      .yt-badge {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        padding: 8px 12px;
+        background: rgba(239, 68, 68, 0.06);
+        border: 1px solid rgba(239, 68, 68, 0.2);
+        border-radius: var(--r);
+        font-size: 12px;
+        font-weight: 500;
+        color: #fca5a5;
+      }
+
+      .hidden {
+        display: none !important;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="sp-gate" class="hidden">
+      <div class="gate-icon">🧠</div>
+      <div class="gate-title">Second Brain Locked</div>
+      <div class="gate-sub">
+        Login via the Brain OS popup to unlock your Neural Copilot
+      </div>
+      <button class="gate-btn">Open Login →</button>
+    </div>
+
+    <div
+      id="sp-app"
+      class="hidden"
+      style="display: flex; flex-direction: column; height: 100%"
+    >
+      <header class="sp-header">
+        <div class="sp-brand">
+          Brain OS
+        </div>
+        <div class="sp-header-chips">
+          <div class="chip" id="streak-chip" title="Day streak">
+            🔥 <span id="streak-val">0</span>d
+          </div>
+          <div class="chip green" id="health-chip">
+            <div class="dot"></div>
+            <span id="health-val">--</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="sp-main">
+        <div class="yt-badge hidden" id="yt-badge">
+          <span>▶️</span>
+          <span id="yt-badge-text">YouTube context loaded</span>
+        </div>
+        <div class="ctx-card" id="ctx-card">
+          <div class="ctx-top">
+            <div class="ctx-label">
+              <div class="live-dot"></div>
+              Context
+              <span class="code-tag" id="code-tag">Code</span>
+            </div>
+            <span class="ctx-chars" id="ctx-chars"></span>
+          </div>
+          <div class="ctx-body">
+            <div id="sel-preview">
+              <div class="ctx-placeholder">
+                <span>Highlight any text on the page →</span>
+                <span style="font-size: 10.5px; color: var(--faint)"
+                  >or press
+                  <strong style="color: var(--muted)">Ctrl+K</strong> for
+                  Command Palette</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="snap-preview hidden" id="snap-preview">
+          <img id="snap-img" src="" alt="Screen capture" />
+          <div class="snap-label">📸 Snap & Learn — Captured Screen</div>
+        </div>
+        <div class="lang-row">
+          <span class="lang-tag">Lang</span>
+          <select id="lang-select">
+            <option value="English">🇬🇧 English</option>
+            <option value="Hindi">🇮🇳 Hindi</option>
+            <option value="Hinglish">Hinglish</option>
+            <option value="Tamil">தமிழ் Tamil</option>
+            <option value="Telugu">తెలుగు Telugu</option>
+            <option value="Bengali">বাংলা Bengali</option>
+            <option value="Marathi">मराठी Marathi</option>
+            <option value="Gujarati">ગુજરાતી Gujarati</option>
+            <option value="Spanish">🇪🇸 Spanish</option>
+            <option value="French">🇫🇷 French</option>
+            <option value="Japanese">🇯🇵 Japanese</option>
+            <option value="Arabic">🇸🇦 Arabic</option>
+          </select>
+        </div>
+        <div class="ws-row">
+          <span class="ws-tag">WS</span>
+          <input
+            id="ws-input"
+            list="ws-datalist"
+            placeholder="Workspace name (type any)"
+          />
+          <datalist id="ws-datalist">
+            <option value="General"></option>
+            <option value="DSA"></option>
+            <option value="System Design"></option>
+            <option value="Web Dev"></option>
+            <option value="Machine Learning"></option>
+            <option value="DevOps"></option>
+          </datalist>
+        </div>
+        <div class="action-grid">
+          <button class="ab" data-mode="desi_analogy">
+            <span class="ab-icon">🔮</span>Desi Mode
+          </button>
+          <button class="ab" data-mode="neural_link">
+            <span class="ab-icon">🧬</span>Neural Link
+          </button>
+          <button class="ab" data-mode="eli5">
+            <span class="ab-icon">⚡</span>ELI5
+          </button>
+          <button class="ab" data-mode="roast_code">
+            <span class="ab-icon">🐛</span>Roast Code
+          </button>
+          <button class="ab" data-mode="arch_diagram">
+            <span class="ab-icon">🏗️</span>Arch Diagram
+          </button>
+          <button class="ab save-ab" data-mode="save">
+            <span class="ab-icon">💾</span>Save
+          </button>
+        </div>
+        <button
+          class="ab ab-snap"
+          id="snap-btn"
+          style="
+            width: 100%;
+            flex-direction: row;
+            justify-content: center;
+            gap: 8px;
+          "
+        >
+          <span class="ab-icon">📸</span>
+          <span>Snap &amp; Learn — Capture Screen</span>
+        </button>
+
+        <!-- Keyboard hints -->
+        <div class="kb-row">
+          <kbd class="kb">Ctrl+K</kbd> Palette
+          <span style="color: var(--border2)">·</span>
+          <kbd class="kb">Ctrl+Shift+S</kbd> Quick save
+        </div>
+
+        <!-- Loader -->
+        <div id="sp-loader" class="hidden">
+          <div class="loader-ring"></div>
+          <div class="loader-msg" id="loader-msg">Processing…</div>
+        </div>
+
+        <!-- AI Response -->
+        <div class="resp-card hidden" id="resp-card">
+          <div class="resp-header">
+            <div class="resp-mode">
+              <span id="resp-icon">⬡</span>
+              <span id="resp-label">BRAIN OS</span>
+            </div>
+            <div class="resp-actions">
+              <button class="icon-btn" id="copy-btn">Copy</button>
+              <button class="icon-btn" id="save-resp-btn">Save →</button>
+            </div>
+          </div>
+          <div class="resp-body" id="resp-body"></div>
+        </div>
+
+        <!-- Save success -->
+        <div class="save-ok hidden" id="save-ok">
+          ✓ Locked into your Second Brain
+        </div>
+
+        <!-- Error -->
+        <div class="err-card hidden" id="err-card">
+          ⚠ <span id="err-msg"></span>
+        </div>
+
+        <!-- Neural Links -->
+        <div class="neural-section hidden" id="neural-section">
+          <div class="section-row" id="neural-toggle">
+            <div class="section-row-left">
+              <span class="sec-label">Neural Links</span>
+              <span class="sec-count" id="neural-count">0</span>
+            </div>
+            <span class="chevron open" id="neural-chevron">▾</span>
+          </div>
+          <div id="mem-cards"></div>
+        </div>
+      </main>
+    </div>
+
+    <script src="sidepanel.js"></script>
+  </body>
 </html>
