@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Brain OS | Bharat Copilot",
+  "name": "Brain Extension | Bharat Copilot",
   "version": "5.1.0",
   "description": "AI-powered Second Brain for Indian developers. Highlight, learn, save, build.",
   "permissions": [
@@ -27,7 +27,7 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Brain OS — Bharat Copilot",
+    "default_title": "Brain Extension — Bharat Copilot",
     "default_icon": {
       "16": "icon.png",
       "48": "icon.png",
