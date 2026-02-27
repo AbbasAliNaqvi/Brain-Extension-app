@@ -1,17 +1,3 @@
-/*
- * Brain OS v5.4 — content.css
- *
- * NOTE: The floating toolbar is now rendered inside a Shadow DOM.
- * Its styles are injected as a <style> element inside the shadow root
- * directly from content.js — they are NOT in this file.
- *
- * This file covers only elements injected into the main document:
- *   — Magic Translate dissolve animation spans
- *   — This file is kept minimal; toast & palette styles are inline in content.js
- *     (inline styles on shadow/programmatic elements avoid any CSP friction)
- */
-
-/* ── Magic Translate ─────────────────────────────────────────── */
 @keyframes brain-dissolve-out {
   from { opacity: 1; filter: blur(0px);  }
   to   { opacity: 0; filter: blur(6px);  }
@@ -34,7 +20,6 @@
   outline-offset: 2px                      !important;
 }
 
-/* ── Shadow host  (zero-dimension anchor, no visual) ─────────── */
 #brain-os-shadow-host {
   all: initial !important;
   position: absolute !important;
