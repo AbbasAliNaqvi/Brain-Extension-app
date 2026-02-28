@@ -11,7 +11,8 @@
     "contextMenus",
     "alarms",
     "notifications",
-    "tabs"
+    "tabs",
+    "tabGroups"
   ],
   "host_permissions": [
     "http://localhost:5050/*",
@@ -27,7 +28,7 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Brain Extension — Bharat Copilot",
+    "default_title": "Brain Extension",
     "default_icon": {
       "16": "icon.png",
       "48": "icon.png",
@@ -38,7 +39,6 @@
     {
       "matches": ["<all_urls>"],
       "js": ["content.js"],
-      "css": ["content.css"],
       "run_at": "document_idle"
     }
   ],
@@ -55,11 +55,5 @@
       "suggested_key": { "default": "Ctrl+Shift+B", "mac": "Command+Shift+B" },
       "description": "Open Brain OS Side Panel"
     }
-  },
-  "web_accessible_resources": [
-    {
-      "resources": ["icons/*"],
-      "matches": ["<all_urls>"]
-    }
-  ]
+  }
 }
