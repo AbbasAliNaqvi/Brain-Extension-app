@@ -1,4 +1,6 @@
-const API_BASE = "http://localhost:5050";
+importScripts("agent-background.js");
+
+const API_BASE = "https://brain-extension-exng.onrender.com";
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.removeAll(() => {
@@ -216,111 +218,6 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
 });
-
-async function _executeAgentWorkflow(actions, goal, senderTab) {
-  let stepsDone = 0,
-    activeTabId = senderTab?.id;
-  const _broadcast = (type, payload) =>
-    chrome.runtime.sendMessage({ type, ...payload }).catch(() => {});
-  const _log = (status, message) =>
-    _broadcast("AGENT_PROGRESS", { log: { status, message } });
-  const _getActiveTab = async () => {
-    try {
-      if (activeTabId) {
-        const tab = await chrome.tabs.get(activeTabId);
-        if (tab && !tab.url?.startsWith("chrome://")) return tab;
-      }
-      const [tab] = await chrome.tabs.query({
-        active: true,
-        currentWindow: true,
-      });
-      return tab;
-    } catch {
-      return null;
-    }
-  };
-  const _waitForTabLoad = (tabId) =>
-    new Promise((resolve) => {
-      const check = async () => {
-        try {
-          const t = await chrome.tabs.get(tabId);
-          if (t.status === "complete") {
-            resolve();
-            return;
-          }
-        } catch {}
-        setTimeout(check, 300);
-      };
-      check();
-      setTimeout(resolve, 10000);
-    });
-  const _sendToContent = (tabId, action) =>
-    new Promise((resolve) => {
-      chrome.tabs.sendMessage(
-        tabId,
-        { type: "AGENT_ACTION", action },
-        (resp) => {
-          if (chrome.runtime.lastError) {
-            resolve({ ok: false, error: chrome.runtime.lastError.message });
-            return;
-          }
-          resolve(resp || { ok: false, error: "No response" });
-        },
-      );
-      setTimeout(() => resolve({ ok: false, error: "Timeout" }), 9000);
-    });
-
-  for (let i = 0; i < actions.length; i++) {
-    const action = actions[i],
-      label = `Step ${i + 1}/${actions.length}`;
-    try {
-      if (action.type === "navigate") {
-        _log("running", `${label}: Navigating to ${action.url}`);
-        if (!activeTabId) {
-          const t = await chrome.tabs.create({ url: action.url, active: true });
-          activeTabId = t.id;
-        } else await chrome.tabs.update(activeTabId, { url: action.url });
-        await _waitForTabLoad(activeTabId);
-        await _sleep(1200);
-        _log("success", `${label}: Navigated`);
-      } else if (action.type === "wait") {
-        const ms = Math.min(action.ms || 1000, 5000);
-        _log("running", `${label}: Waiting ${ms}ms`);
-        await _sleep(ms);
-        _log("success", `${label}: Done`);
-      } else if (action.type === "click" || action.type === "type") {
-        const tab = await _getActiveTab();
-        if (!tab) throw new Error("No active tab");
-        activeTabId = tab.id;
-        _log(
-          "running",
-          `${label}: ${action.type === "click" ? "Clicking" : "Typing"} "${action.selector}"`,
-        );
-        const result = await _sendToContent(activeTabId, action);
-        if (!result.ok) _log("error", `${label}: ${result.error} — skipping`);
-        else {
-          _log("success", `${label}: ${action.type} done`);
-          await _sleep(400);
-        }
-      } else if (["keyboard", "scroll", "read"].includes(action.type)) {
-        const tab = await _getActiveTab();
-        if (tab) {
-          activeTabId = tab.id;
-          await _sendToContent(activeTabId, action);
-        }
-        _log("success", `${label}: ${action.type} done`);
-      } else _log("success", `${label}: Unknown "${action.type}" skipped`);
-      stepsDone++;
-    } catch (err) {
-      _log("error", `${label}: ${err.message}`);
-      if (action.critical) {
-        _broadcast("AGENT_ERROR", { message: `Critical: ${err.message}` });
-        return;
-      }
-    }
-  }
-  _broadcast("AGENT_DONE", { stepsDone, goal });
-}
 
 async function _handleSnapLearn(tab) {
   if (!tab?.windowId) return;

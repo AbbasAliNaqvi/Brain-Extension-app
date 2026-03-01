@@ -15,7 +15,7 @@
     "tabGroups"
   ],
   "host_permissions": [
-    "http://localhost:5050/*",
+    "https://brain-extension-exng.onrender.com/*",
     "https://*.youtube.com/*",
     "https://api.github.com/*",
     "<all_urls>"
@@ -32,35 +32,22 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "<all_urls>"
-      ],
-      "js": [
-        "content.js"
-      ],
+      "matches": ["<all_urls>"],
+      "js": ["content.js", "agent-content.js"],
       "run_at": "document_idle"
     }
   ],
   "commands": {
     "open-command-palette": {
-      "suggested_key": {
-        "default": "Ctrl+K",
-        "mac": "Command+K"
-      },
+      "suggested_key": { "default": "Ctrl+K", "mac": "Command+K" },
       "description": "Open Command Palette"
     },
     "quick-save": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+S",
-        "mac": "Command+Shift+S"
-      },
+      "suggested_key": { "default": "Ctrl+Shift+S", "mac": "Command+Shift+S" },
       "description": "Quick Save Selection"
     },
     "open-sidepanel": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+K",
-        "mac": "Command+Shift+K"
-      },
+      "suggested_key": { "default": "Ctrl+Shift+K", "mac": "Command+Shift+K" },
       "description": "Open Side Panel"
     }
   }
