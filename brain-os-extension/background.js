@@ -65,7 +65,6 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   })();
 });
 
-// BULLETPROOF KEYBOARD SHORTCUT ROUTER
 chrome.commands.onCommand.addListener((command, tab) => {
   if (command === "open-sidepanel" && tab?.windowId) {
     chrome.sidePanel.open({ windowId: tab.windowId });

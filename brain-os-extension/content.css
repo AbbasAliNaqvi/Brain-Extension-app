@@ -1,11 +1,23 @@
 @keyframes brain-dissolve-out {
-  from { opacity: 1; filter: blur(0px);  }
-  to   { opacity: 0; filter: blur(6px);  }
+  from {
+    opacity: 1;
+    filter: blur(0px);
+  }
+  to {
+    opacity: 0;
+    filter: blur(6px);
+  }
 }
 
 @keyframes brain-dissolve-in {
-  from { opacity: 0; filter: blur(6px);  }
-  to   { opacity: 1; filter: blur(0px);  }
+  from {
+    opacity: 0;
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0px);
+  }
 }
 
 .brain-dissolve-out {
@@ -14,10 +26,10 @@
 
 .brain-dissolve-in {
   animation: brain-dissolve-in 0.32s ease forwards;
-  background:     rgba(16, 185, 129, 0.08) !important;
-  border-radius:  2px                      !important;
-  outline:        1px solid rgba(16, 185, 129, 0.3) !important;
-  outline-offset: 2px                      !important;
+  background: rgba(16, 185, 129, 0.08) !important;
+  border-radius: 2px !important;
+  outline: 1px solid rgba(16, 185, 129, 0.3) !important;
+  outline-offset: 2px !important;
 }
 
 #brain-os-shadow-host {

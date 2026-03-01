@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "Brain Extension | Bharat Copilot",
-  "version": "5.1.0",
-  "description": "AI-powered Second Brain for Indian developers. Highlight, learn, save, build.",
+  "name": "Brain Extension",
+  "version": "6.0.0",
+  "description": "AI-powered Second Brain and Autonomous Web Pilot",
   "permissions": [
     "sidePanel",
     "storage",
@@ -28,32 +28,40 @@
   },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Brain Extension",
-    "default_icon": {
-      "16": "icon.png",
-      "48": "icon.png",
-      "128": "icon.png"
-    }
+    "default_title": "Brain Extension"
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_idle"
     }
   ],
   "commands": {
     "open-command-palette": {
-      "suggested_key": { "default": "Ctrl+K", "mac": "Command+K" },
-      "description": "Open Brain OS Command Palette"
+      "suggested_key": {
+        "default": "Ctrl+K",
+        "mac": "Command+K"
+      },
+      "description": "Open Command Palette"
     },
     "quick-save": {
-      "suggested_key": { "default": "Ctrl+Shift+S", "mac": "Command+Shift+S" },
-      "description": "Quick-save selection to Brain"
+      "suggested_key": {
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
+      },
+      "description": "Quick Save Selection"
     },
     "open-sidepanel": {
-      "suggested_key": { "default": "Ctrl+Shift+B", "mac": "Command+Shift+B" },
-      "description": "Open Brain OS Side Panel"
+      "suggested_key": {
+        "default": "Ctrl+Shift+K",
+        "mac": "Command+Shift+K"
+      },
+      "description": "Open Side Panel"
     }
   }
 }

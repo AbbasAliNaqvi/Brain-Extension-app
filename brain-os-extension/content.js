@@ -8,15 +8,20 @@
   const isYouTube = location.hostname.includes("youtube.com");
   const isGitHub = location.hostname.includes("github.com");
 
-  const _esc = (s) => String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const _esc = (s) =>
+    String(s || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
 
   function getFaviconUrl(url) {
-      try {
-          const host = new URL(url).hostname;
-          return `https://s2.googleusercontent.com/s2/favicons?domain=${host}&sz=32`;
-      } catch (e) {
-          return "";
-      }
+    try {
+      const host = new URL(url).hostname;
+      return `https://s2.googleusercontent.com/s2/favicons?domain=${host}&sz=32`;
+    } catch (e) {
+      return "";
+    }
   }
 
   const CODE_PATS = [
@@ -26,9 +31,9 @@
     /(def |print\(|self\.|async def)/,
     /(SELECT|FROM|WHERE|INSERT|UPDATE)\s+/i,
   ];
-  const isCode = (t) => t.length > 20 && CODE_PATS.filter((p) => p.test(t)).length >= 2;
+  const isCode = (t) =>
+    t.length > 20 && CODE_PATS.filter((p) => p.test(t)).length >= 2;
 
-  // Added strictly professional OS-level icons
   const ICONS = {
     sparkles: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 17l-6.2 4.3 2.4-7.4L2 9.4h7.6z"/></svg>`,
     bolt: `<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L4.5 13.5H11L10 22L20 10H13.5L15 2Z"/></svg>`,
@@ -45,20 +50,23 @@
     tabIcon: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="3"/><line x1="2" y1="10" x2="22" y2="10"/></svg>`,
     folder: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`,
     github: `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.342-3.369-1.342-.454-1.155-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0 1 12 6.836a9.59 9.59 0 0 1 2.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.202 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z"/></svg>`,
-    youtube: `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`
+    youtube: `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>`,
   };
 
   function sendMsg(payload, cb) {
     try {
       if (!chrome.runtime?.id) return;
-      chrome.runtime.sendMessage(payload, (resp) => { cb?.(resp); });
+      chrome.runtime.sendMessage(payload, (resp) => {
+        cb?.(resp);
+      });
     } catch {}
   }
 
-  // ==========================================
-  // TEXT SELECTION FLOATING TOOLBAR
-  // ==========================================
-  let shadowHost = null, shadowRoot = null, tbEl = null, currentText = "", hideTimer = null;
+  let shadowHost = null,
+    shadowRoot = null,
+    tbEl = null,
+    currentText = "",
+    hideTimer = null;
 
   const TOOLBAR_CSS = `
     :host { all: initial; position: absolute; z-index: 2147483647; pointer-events: none; }
@@ -75,7 +83,13 @@
   function _buildToolbar() {
     if (shadowHost) return;
     shadowHost = document.createElement("div");
-    Object.assign(shadowHost.style, { position: "absolute", top: "0", left: "0", zIndex: "2147483647", pointerEvents: "none" });
+    Object.assign(shadowHost.style, {
+      position: "absolute",
+      top: "0",
+      left: "0",
+      zIndex: "2147483647",
+      pointerEvents: "none",
+    });
     document.body.appendChild(shadowHost);
     shadowRoot = shadowHost.attachShadow({ mode: "open" });
     const style = document.createElement("style");
@@ -93,10 +107,14 @@
       <button class="btn" data-action="save"><span class="ic">${ICONS.bookmark}</span>Save</button>
     `;
     shadowRoot.appendChild(tbEl);
-    
-    tbEl.addEventListener("mousedown", e => e.stopPropagation());
-    tbEl.querySelectorAll(".btn").forEach(btn => {
-      btn.addEventListener("click", e => { e.preventDefault(); e.stopPropagation(); _handleAction(btn.dataset.action); });
+
+    tbEl.addEventListener("mousedown", (e) => e.stopPropagation());
+    tbEl.querySelectorAll(".btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        _handleAction(btn.dataset.action);
+      });
     });
   }
 
@@ -107,7 +125,9 @@
     shadowHost.style.left = `${window.scrollX}px`;
     tbEl.classList.add("visible");
     requestAnimationFrame(() => {
-      const tbW = tbEl.offsetWidth || 300, tbH = tbEl.offsetHeight || 38, GAP = 9;
+      const tbW = tbEl.offsetWidth || 300,
+        tbH = tbEl.offsetHeight || 38,
+        GAP = 9;
       let top = rect.top + window.scrollY - tbH - GAP;
       let left = rect.left + window.scrollX + rect.width / 2 - tbW / 2;
       if (top < window.scrollY + 8) top = rect.bottom + window.scrollY + GAP;
@@ -116,54 +136,82 @@
     });
   }
 
-  function _hideToolbar() { hideTimer = setTimeout(() => tbEl?.classList.remove("visible"), 120); }
+  function _hideToolbar() {
+    hideTimer = setTimeout(() => tbEl?.classList.remove("visible"), 120);
+  }
 
-  document.addEventListener("mouseup", e => {
+  document.addEventListener("mouseup", (e) => {
     if (shadowHost && e.composedPath().some((n) => n === shadowHost)) return;
     setTimeout(() => {
-      const sel = window.getSelection(); const text = sel?.toString()?.trim();
-      if (!text || text.length < 4) { _hideToolbar(); return; }
+      const sel = window.getSelection();
+      const text = sel?.toString()?.trim();
+      if (!text || text.length < 4) {
+        _hideToolbar();
+        return;
+      }
       currentText = text;
-      try { if (chrome.runtime?.id) chrome.storage.local.set({ lastSelection: text }).catch(()=>{}); } catch{}
+      try {
+        if (chrome.runtime?.id)
+          chrome.storage.local.set({ lastSelection: text }).catch(() => {});
+      } catch {}
       const rect = sel.getRangeAt(0).getBoundingClientRect();
       if (rect.width && rect.height) _showToolbar(rect);
     }, 10);
   });
-  document.addEventListener("mousedown", e => { if (shadowHost && !e.composedPath().some((n) => n === shadowHost)) _hideToolbar(); });
+  document.addEventListener("mousedown", (e) => {
+    if (shadowHost && !e.composedPath().some((n) => n === shadowHost))
+      _hideToolbar();
+  });
 
   function _handleAction(action) {
     _hideToolbar();
-    if (action === "magic_translate") { _runMagicTranslate(currentText); return; }
+    if (action === "magic_translate") {
+      _runMagicTranslate(currentText);
+      return;
+    }
     sendMsg({ type: "TOOLBAR_ACTION", mode: action, text: currentText });
   }
 
   async function _runMagicTranslate(text) {
     let token, lang;
-    try { ({ token, targetLanguage: lang = "Hindi" } = await chrome.storage.local.get(["token", "targetLanguage"])); } catch { return; }
+    try {
+      ({ token, targetLanguage: lang = "Hindi" } =
+        await chrome.storage.local.get(["token", "targetLanguage"]));
+    } catch {
+      return;
+    }
     if (!token) return;
-    const sel = window.getSelection(); if (!sel?.rangeCount) return;
-    const range = sel.getRangeAt(0), wrapper = document.createElement("span");
-    try { range.surroundContents(wrapper); } catch { return; }
+    const sel = window.getSelection();
+    if (!sel?.rangeCount) return;
+    const range = sel.getRangeAt(0),
+      wrapper = document.createElement("span");
+    try {
+      range.surroundContents(wrapper);
+    } catch {
+      return;
+    }
     wrapper.style.opacity = "0.5";
     try {
       const res = await fetch(`${API_BASE}/brain/translate`, {
-        method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ text, targetLanguage: lang }),
       });
       const data = await res.json();
-      wrapper.textContent = data.translation; wrapper.title = `Original: ${text}`;
-      wrapper.style.opacity = "1"; wrapper.style.background = "rgba(16,185,129,0.1)";
+      wrapper.textContent = data.translation;
+      wrapper.title = `Original: ${text}`;
+      wrapper.style.opacity = "1";
+      wrapper.style.background = "rgba(16,185,129,0.1)";
       sel.removeAllRanges();
     } catch {}
   }
 
-
-  // =========================================================
-  // GORGEOUS MAC-OS SPOTLIGHT COMMAND PALETTE (Cmd+K)
-  // =========================================================
   let paletteEl = null;
   let allTabsMap = {};
-  let currentViewMode = "main"; 
+  let currentViewMode = "main";
   let mainMenuHTML = "";
   let activeClusterData = null;
 
@@ -171,7 +219,7 @@
     if (paletteEl) return;
     paletteEl = document.createElement("div");
     paletteEl.id = "__brain_palette_overlay";
-    
+
     paletteEl.innerHTML = `
       <div id="__brain_palette">
         <div class="ph">
@@ -239,63 +287,83 @@
     paletteEl.addEventListener("click", (e) => {
       if (e.target === paletteEl) _closePalette();
     });
-    
+
     paletteEl.addEventListener("click", (e) => {
-      const groupBtn = e.target.closest('.action-group-btn');
+      const groupBtn = e.target.closest(".action-group-btn");
       if (groupBtn) {
-          e.stopPropagation();
-          chrome.runtime.sendMessage({ type: "GROUP_TABS", tabIds: activeClusterData.tabIds, title: activeClusterData.clusterName, color: activeClusterData.color });
-          _closePalette();
-          return;
+        e.stopPropagation();
+        chrome.runtime.sendMessage({
+          type: "GROUP_TABS",
+          tabIds: activeClusterData.tabIds,
+          title: activeClusterData.clusterName,
+          color: activeClusterData.color,
+        });
+        _closePalette();
+        return;
       }
 
       const targetPi = e.target.closest(".pi");
       if (!targetPi) return;
 
       if (currentViewMode === "main") {
-          if (targetPi.classList.contains("ctx-cluster")) {
-              _enterClusterView(targetPi);
-          } else {
-              _runPaletteAction(targetPi);
-          }
+        if (targetPi.classList.contains("ctx-cluster")) {
+          _enterClusterView(targetPi);
+        } else {
+          _runPaletteAction(targetPi);
+        }
       } else if (currentViewMode === "cluster") {
-          if (targetPi.dataset.pa === "back") {
-              _exitClusterView();
-          } else {
-              _runPaletteAction(targetPi);
-          }
+        if (targetPi.dataset.pa === "back") {
+          _exitClusterView();
+        } else {
+          _runPaletteAction(targetPi);
+        }
       }
     });
 
     input.addEventListener("keydown", (e) => {
-      const items = [...results.querySelectorAll(".pi")].filter(el => el.style.display !== "none");
-      
+      const items = [...results.querySelectorAll(".pi")].filter(
+        (el) => el.style.display !== "none",
+      );
+
       if (e.key === "Escape") {
-          if (currentViewMode === "cluster") {
-              e.preventDefault();
-              _exitClusterView();
-          } else {
-              _closePalette();
-          }
-          return; 
+        if (currentViewMode === "cluster") {
+          e.preventDefault();
+          _exitClusterView();
+        } else {
+          _closePalette();
+        }
+        return;
       }
-      
-      if (e.key === "ArrowDown") { e.preventDefault(); activeIdx = Math.min(activeIdx + 1, items.length - 1); _markActive(items, activeIdx); return; }
-      if (e.key === "ArrowUp") { e.preventDefault(); activeIdx = Math.max(activeIdx - 1, 0); _markActive(items, activeIdx); return; }
-      
-      if (e.key === "Enter") { 
-          e.preventDefault(); 
-          const a = items[activeIdx]; 
-          if (a) {
-              if (currentViewMode === "main" && a.classList.contains("ctx-cluster")) {
-                  _enterClusterView(a);
-              } else if (currentViewMode === "cluster" && a.dataset.pa === "back") {
-                  _exitClusterView();
-              } else {
-                  _runPaletteAction(a); 
-              }
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        activeIdx = Math.min(activeIdx + 1, items.length - 1);
+        _markActive(items, activeIdx);
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        activeIdx = Math.max(activeIdx - 1, 0);
+        _markActive(items, activeIdx);
+        return;
+      }
+
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const a = items[activeIdx];
+        if (a) {
+          if (
+            currentViewMode === "main" &&
+            a.classList.contains("ctx-cluster")
+          ) {
+            _enterClusterView(a);
+          } else if (currentViewMode === "cluster" && a.dataset.pa === "back") {
+            _exitClusterView();
+          } else {
+            _runPaletteAction(a);
           }
-          return; 
+        }
+        return;
       }
     });
 
@@ -304,25 +372,36 @@
       activeIdx = -1;
       const items = results.querySelectorAll(".pi");
       let visibleCount = 0;
-      items.forEach(item => {
+      items.forEach((item) => {
         const text = item.textContent.toLowerCase();
-        if (text.includes(q)) { item.style.display = "flex"; visibleCount++; } 
-        else { item.style.display = "none"; }
+        if (text.includes(q)) {
+          item.style.display = "flex";
+          visibleCount++;
+        } else {
+          item.style.display = "none";
+        }
       });
-      results.querySelectorAll(".psl").forEach(l => l.style.display = q && visibleCount === 0 ? "none" : "flex");
+      results
+        .querySelectorAll(".psl")
+        .forEach(
+          (l) => (l.style.display = q && visibleCount === 0 ? "none" : "flex"),
+        );
     });
   }
 
   function _enterClusterView(clusterElement) {
-      activeClusterData = JSON.parse(clusterElement.dataset.cluster.replace(/&#39;/g, "'"));
-      currentViewMode = "cluster";
-      const results = paletteEl.querySelector("#__brain_pr");
-      const input = paletteEl.querySelector("#__brain_pi");
+    activeClusterData = JSON.parse(
+      clusterElement.dataset.cluster.replace(/&#39;/g, "'"),
+    );
+    currentViewMode = "cluster";
+    const results = paletteEl.querySelector("#__brain_pr");
+    const input = paletteEl.querySelector("#__brain_pi");
 
-      const childrenHtml = activeClusterData.tabIds.map(id => {
-          const t = allTabsMap[id];
-          if (!t) return "";
-          return `
+    const childrenHtml = activeClusterData.tabIds
+      .map((id) => {
+        const t = allTabsMap[id];
+        if (!t) return "";
+        return `
               <div class="pi" data-pa="tab" data-tabid="${t.id}">
                   <span class="pi-ic"><img src="${getFaviconUrl(t.url)}" class="favicon" onerror="this.outerHTML='<span class=\\'pi-ic\\'>${ICONS.tabIcon}</span>'" /></span>
                   <div class="pi-body">
@@ -331,9 +410,10 @@
                   </div>
               </div>
           `;
-      }).join("");
+      })
+      .join("");
 
-      results.innerHTML = `
+    results.innerHTML = `
           <div class="psl" style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
               <span style="font-size:12px; color:#eee;">${_esc(activeClusterData.clusterName)}</span>
               <button class="action-group-btn">Group in Chrome</button>
@@ -347,27 +427,28 @@
           ${childrenHtml}
       `;
 
-      input.value = "";
-      input.placeholder = `Search inside ${activeClusterData.clusterName}...`;
-      input.focus();
+    input.value = "";
+    input.placeholder = `Search inside ${activeClusterData.clusterName}...`;
+    input.focus();
   }
 
   function _exitClusterView() {
-      currentViewMode = "main";
-      activeClusterData = null;
-      const results = paletteEl.querySelector("#__brain_pr");
-      const input = paletteEl.querySelector("#__brain_pi");
-      
-      results.innerHTML = mainMenuHTML;
-      input.value = "";
-      input.placeholder = "Search your Second Brain...";
-      input.focus();
+    currentViewMode = "main";
+    activeClusterData = null;
+    const results = paletteEl.querySelector("#__brain_pr");
+    const input = paletteEl.querySelector("#__brain_pi");
+
+    results.innerHTML = mainMenuHTML;
+    input.value = "";
+    input.placeholder = "Search your Second Brain...";
+    input.focus();
   }
 
   function _markActive(items, idx) {
     items.forEach((el, i) => {
-        el.classList.toggle("act", i === idx);
-        if (i === idx) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      el.classList.toggle("act", i === idx);
+      if (i === idx)
+        el.scrollIntoView({ block: "nearest", behavior: "smooth" });
     });
   }
 
@@ -378,10 +459,10 @@
     input.value = "";
     input.placeholder = "Search your Second Brain...";
     input.focus();
-    
+
     currentViewMode = "main";
     const results = paletteEl.querySelector("#__brain_pr");
-    
+
     results.innerHTML = `
       <div class="psl">Quick Actions</div>
       <div class="pi" data-pa="panel">
@@ -406,17 +487,18 @@
       chrome.runtime.sendMessage({ type: "GET_ALL_TABS" }, (result) => {
         const allTabs = result?.tabs || [];
         allTabsMap = {};
-        allTabs.forEach(t => allTabsMap[t.id] = t);
+        allTabs.forEach((t) => (allTabsMap[t.id] = t));
 
         chrome.runtime.sendMessage({ type: "CLUSTER_TABS" }, (resp) => {
-            const loadingEl = results.querySelector("#__ctx_loading");
-            if (!loadingEl) return; 
+          const loadingEl = results.querySelector("#__ctx_loading");
+          if (!loadingEl) return;
 
-            if (chrome.runtime.lastError || !resp || resp.status === "ERROR") {
-                loadingEl.outerHTML = `<div class="pe" style="color:#ef4444">ContextOS offline. Error: ${resp?.message || 'Network issue'}</div>`;
-            } else if (resp.clusters && resp.clusters.length > 0) {
-                loadingEl.outerHTML = resp.clusters.map(c => {
-                    return `
+          if (chrome.runtime.lastError || !resp || resp.status === "ERROR") {
+            loadingEl.outerHTML = `<div class="pe" style="color:#ef4444">ContextOS offline. Error: ${resp?.message || "Network issue"}</div>`;
+          } else if (resp.clusters && resp.clusters.length > 0) {
+            loadingEl.outerHTML = resp.clusters
+              .map((c) => {
+                return `
                     <div class="pi ctx-cluster" data-cluster='${JSON.stringify(c).replace(/'/g, "&#39;")}'>
                         <span class="pi-ic">${ICONS.folder}</span>
                         <div class="pi-body">
@@ -425,17 +507,22 @@
                         </div>
                         <span style="color:#666; font-size:16px;">→</span>
                     </div>
-                `}).join("");
-            } else {
-                loadingEl.outerHTML = `<div class="pe">No clear tab contexts found.</div>`;
-            }
-            
-            if (allTabs.length > 0) {
-                const tabsHTML = `
+                `;
+              })
+              .join("");
+          } else {
+            loadingEl.outerHTML = `<div class="pe">No clear tab contexts found.</div>`;
+          }
+
+          if (allTabs.length > 0) {
+            const tabsHTML = `
                     <div class="psl" style="margin-top:12px" id="__tabs_lbl">All Open Tabs (${allTabs.length})</div>
-                    ${allTabs.map(t => {
+                    ${allTabs
+                      .map((t) => {
                         let host = "";
-                        try { host = new URL(t.url).hostname.replace(/^www\./, ""); } catch {}
+                        try {
+                          host = new URL(t.url).hostname.replace(/^www\./, "");
+                        } catch {}
                         return `
                             <div class="pi" data-pa="tab" data-tabid="${t.id}">
                                 <span class="pi-ic"><img src="${getFaviconUrl(t.url)}" class="favicon" onerror="this.outerHTML='<span class=\\'pi-ic\\'>${ICONS.tabIcon}</span>'" /></span>
@@ -445,12 +532,13 @@
                                 </div>
                             </div>
                         `;
-                    }).join("")}
+                      })
+                      .join("")}
                 `;
-                results.insertAdjacentHTML('beforeend', tabsHTML);
-            }
-            
-            mainMenuHTML = results.innerHTML;
+            results.insertAdjacentHTML("beforeend", tabsHTML);
+          }
+
+          mainMenuHTML = results.innerHTML;
         });
       });
     } catch (e) {}
@@ -463,23 +551,37 @@
   function _runPaletteAction(el) {
     const action = el.dataset.pa;
     _closePalette();
-    if (action === "panel") sendMsg({ type: "TOOLBAR_ACTION", mode: "open_panel", text: "" });
+    if (action === "panel")
+      sendMsg({ type: "TOOLBAR_ACTION", mode: "open_panel", text: "" });
     if (action === "snap") sendMsg({ type: "SNAP_LEARN_REQUEST" });
     if (action === "tab") {
-        const tabId = parseInt(el.dataset.tabid);
-        if (!isNaN(tabId)) sendMsg({ type: "FOCUS_TAB", tabId });
+      const tabId = parseInt(el.dataset.tabid);
+      if (!isNaN(tabId)) sendMsg({ type: "FOCUS_TAB", tabId });
     }
   }
 
-  document.addEventListener("keydown", (e) => {
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k" && !e.shiftKey) {
-      const tag = document.activeElement?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA" || document.activeElement?.isContentEditable) return;
-      e.preventDefault(); 
-      e.stopPropagation();
-      _openPalette();
-    }
-  }, true);
+  document.addEventListener(
+    "keydown",
+    (e) => {
+      if (
+        (e.ctrlKey || e.metaKey) &&
+        e.key.toLowerCase() === "k" &&
+        !e.shiftKey
+      ) {
+        const tag = document.activeElement?.tagName;
+        if (
+          tag === "INPUT" ||
+          tag === "TEXTAREA" ||
+          document.activeElement?.isContentEditable
+        )
+          return;
+        e.preventDefault();
+        e.stopPropagation();
+        _openPalette();
+      }
+    },
+    true,
+  );
 
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.type === "OPEN_PALETTE") {
@@ -494,33 +596,70 @@
       return true;
     }
     if (msg.type === "AGENT_ACTION") {
-      _executeAction(msg.action).then(r => sendResponse(r)).catch(err => sendResponse({ ok:false, error:err.message }));
+      _executeAction(msg.action)
+        .then((r) => sendResponse(r))
+        .catch((err) => sendResponse({ ok: false, error: err.message }));
       return true;
     }
   });
 
   function _findElement(selectorOrText) {
     if (!selectorOrText) return null;
-    try { const direct = document.querySelector(selectorOrText); if (direct) return direct; } catch {}
-    
-    if (selectorOrText.startsWith("//") || selectorOrText.startsWith("/html") || selectorOrText.startsWith("(")) {
+    try {
+      const direct = document.querySelector(selectorOrText);
+      if (direct) return direct;
+    } catch {}
+
+    if (
+      selectorOrText.startsWith("//") ||
+      selectorOrText.startsWith("/html") ||
+      selectorOrText.startsWith("(")
+    ) {
       try {
-        const xResult = document.evaluate(selectorOrText, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null);
+        const xResult = document.evaluate(
+          selectorOrText,
+          document,
+          null,
+          XPathResult.FIRST_ORDERED_NODE_TYPE,
+          null,
+        );
         if (xResult.singleNodeValue) return xResult.singleNodeValue;
       } catch {}
     }
 
     const text = selectorOrText.toLowerCase().trim();
-    const interactables = [...document.querySelectorAll('button, a, input, textarea, select, [role="button"], [role="link"], [role="menuitem"], label')];
+    const interactables = [
+      ...document.querySelectorAll(
+        'button, a, input, textarea, select, [role="button"], [role="link"], [role="menuitem"], label',
+      ),
+    ];
 
-    const exactMatch = interactables.find(el => {
-      const elText = (el.textContent || el.value || el.placeholder || el.getAttribute("aria-label") || "").toLowerCase().trim();
-      return elText === text || el.getAttribute("data-testid") === selectorOrText || el.id === selectorOrText;
+    const exactMatch = interactables.find((el) => {
+      const elText = (
+        el.textContent ||
+        el.value ||
+        el.placeholder ||
+        el.getAttribute("aria-label") ||
+        ""
+      )
+        .toLowerCase()
+        .trim();
+      return (
+        elText === text ||
+        el.getAttribute("data-testid") === selectorOrText ||
+        el.id === selectorOrText
+      );
     });
     if (exactMatch) return exactMatch;
 
-    const partialMatch = interactables.find(el => {
-      const elText = (el.textContent || el.value || el.placeholder || el.getAttribute("aria-label") || "").toLowerCase();
+    const partialMatch = interactables.find((el) => {
+      const elText = (
+        el.textContent ||
+        el.value ||
+        el.placeholder ||
+        el.getAttribute("aria-label") ||
+        ""
+      ).toLowerCase();
       return elText.includes(text);
     });
     if (partialMatch) return partialMatch;
@@ -529,8 +668,17 @@
   }
 
   function _simulateInput(el, value) {
-    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,"value")?.set || Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype,"value")?.set;
-    if (nativeInputValueSetter) nativeInputValueSetter.call(el, value); else el.value = value;
+    const nativeInputValueSetter =
+      Object.getOwnPropertyDescriptor(
+        window.HTMLInputElement.prototype,
+        "value",
+      )?.set ||
+      Object.getOwnPropertyDescriptor(
+        window.HTMLTextAreaElement.prototype,
+        "value",
+      )?.set;
+    if (nativeInputValueSetter) nativeInputValueSetter.call(el, value);
+    else el.value = value;
     el.dispatchEvent(new Event("input", { bubbles: true }));
     el.dispatchEvent(new Event("change", { bubbles: true }));
     el.dispatchEvent(new KeyboardEvent("keyup", { bubbles: true }));
@@ -544,34 +692,58 @@
     el.click?.();
   }
 
-  async function _retryFindElement(selectorOrText, maxRetries = 10, interval = 300) {
+  async function _retryFindElement(
+    selectorOrText,
+    maxRetries = 10,
+    interval = 300,
+  ) {
     for (let i = 0; i < maxRetries; i++) {
       const el = _findElement(selectorOrText);
       if (el) return el;
-      await new Promise(r => setTimeout(r, interval));
+      await new Promise((r) => setTimeout(r, interval));
     }
     return null;
   }
 
   async function _executeAction(action) {
-    if (action.type === "wait") { await new Promise(r => setTimeout(r, Math.min(action.ms||500,5000))); return { ok:true }; }
-    if (action.type === "scroll") { window.scrollBy({ top:action.y||400, behavior:"smooth" }); return { ok:true }; }
+    if (action.type === "wait") {
+      await new Promise((r) => setTimeout(r, Math.min(action.ms || 500, 5000)));
+      return { ok: true };
+    }
+    if (action.type === "scroll") {
+      window.scrollBy({ top: action.y || 400, behavior: "smooth" });
+      return { ok: true };
+    }
     if (action.type === "click") {
       const el = await _retryFindElement(action.selector);
-      if (!el) return { ok:false, error:`Element not found: ${action.selector}` };
-      el.scrollIntoView({ behavior:"smooth", block:"center" }); await new Promise(r => setTimeout(r, 150)); _simulateClick(el);
-      return { ok:true };
+      if (!el)
+        return { ok: false, error: `Element not found: ${action.selector}` };
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      await new Promise((r) => setTimeout(r, 150));
+      _simulateClick(el);
+      return { ok: true };
     }
     if (action.type === "type") {
       const el = await _retryFindElement(action.selector);
-      if (!el) return { ok:false, error:`Input not found: ${action.selector}` };
-      el.scrollIntoView({ behavior:"smooth", block:"center" }); el.focus(); await new Promise(r => setTimeout(r, 100)); _simulateInput(el, action.value||"");
+      if (!el)
+        return { ok: false, error: `Input not found: ${action.selector}` };
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      el.focus();
+      await new Promise((r) => setTimeout(r, 100));
+      _simulateInput(el, action.value || "");
       if (action.pressEnter) {
-        await new Promise(r => setTimeout(r, 100));
-        el.dispatchEvent(new KeyboardEvent("keydown", { key:"Enter", code:"Enter", keyCode:13, bubbles:true }));
+        await new Promise((r) => setTimeout(r, 100));
+        el.dispatchEvent(
+          new KeyboardEvent("keydown", {
+            key: "Enter",
+            code: "Enter",
+            keyCode: 13,
+            bubbles: true,
+          }),
+        );
       }
-      return { ok:true };
+      return { ok: true };
     }
-    return { ok:false, error:`Unknown action type: ${action.type}` };
+    return { ok: false, error: `Unknown action type: ${action.type}` };
   }
 })();
