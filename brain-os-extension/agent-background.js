@@ -29,13 +29,36 @@ async function _executeAgentWorkflow(actions, goal, senderTab) {
     setTimeout(resolve, 10000);
   });
 
-  const _sendToContent = (tabId, action) => new Promise((resolve) => {
-    chrome.tabs.sendMessage(tabId, { type: "AGENT_ACTION", action }, (resp) => {
-      if (chrome.runtime.lastError) { resolve({ ok: false, error: chrome.runtime.lastError.message }); return; }
-      resolve(resp || { ok: false, error: "No response" });
-    });
-    setTimeout(() => resolve({ ok: false, error: "Timeout" }), 9000);
-  });
+  const _sendToContent = async (tabId, action, retries = 3) => {
+    for (let i = 0; i < retries; i++) {
+      const result = await new Promise((resolve) => {
+        let answered = false;
+        chrome.tabs.sendMessage(tabId, { type: "AGENT_ACTION", action }, (resp) => {
+          answered = true;
+          if (chrome.runtime.lastError) {
+            resolve({ ok: false, error: chrome.runtime.lastError.message });
+          } else {
+            resolve(resp || { ok: false, error: "No response" });
+          }
+        });
+        setTimeout(() => { if (!answered) resolve({ ok: false, error: "Timeout" }); }, 9000);
+      });
+
+      if (result.ok || (result.error && !result.error.includes("Receiving end does not exist"))) {
+        return result;
+      }
+
+      console.log(`[Agent] Content script missing. Auto-healing... (${i+1}/${retries})`);
+      await _sleep(1000);
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId },
+          files: ["agent-content.js"]
+        });
+      } catch (e) {}
+    }
+    return { ok: false, error: "Connection lost. Page may have refreshed." };
+  };
 
   for (let i = 0; i < actions.length; i++) {
     if (globalAgentAbort) {
@@ -51,21 +74,23 @@ async function _executeAgentWorkflow(actions, goal, senderTab) {
           activeTabId = t.id;
         } else await chrome.tabs.update(activeTabId, { url: action.url });
         await _waitForTabLoad(activeTabId);
-        await _sleep(1200);
+        await _sleep(1500); // Give SPAs extra time
         _log("success", `${label}: Navigated`);
       } else if (action.type === "wait") {
-        const ms = Math.min(action.ms || 1000, 5000);
+        const ms = Math.min(action.ms || 1000, 8000);
         _log("running", `${label}: Waiting ${ms}ms`);
         await _sleep(ms);
         _log("success", `${label}: Done`);
-      } else if (action.type === "click" || action.type === "type") {
+      } else if (action.type === "click" || action.type === "type" || action.type === "fill") {
         const tab = await _getActiveTab();
         if (!tab) throw new Error("No active tab");
         activeTabId = tab.id;
         _log("running", `${label}: ${action.type === "click" ? "Clicking" : "Typing"} "${action.selector}"`);
+        
         const result = await _sendToContent(activeTabId, action);
+        
         if (!result.ok) _log("error", `${label}: ${result.error}`);
-        else { _log("success", `${label}: ${action.type} done`); await _sleep(400); }
+        else { _log("success", `${label}: ${action.type} done`); await _sleep(600); }
       }
       stepsDone++;
     } catch (err) {
@@ -101,12 +126,10 @@ async function initExtensionSocket() {
         console.error("[Agent] User ID not found in token:", payload);
         return;
     }
-    console.log("[Agent] Decoded User ID:", extUserId);
   } catch (e) { 
     console.error("[Agent] JWT Decode Error:", e);
     return; 
   }
-
 
   const wsUrl = `${WS_URL}/socket.io/?EIO=4&transport=websocket&token=${token}`;
   extSocket = new WebSocket(wsUrl);
@@ -132,7 +155,6 @@ async function initExtensionSocket() {
         const [eventName, data] = JSON.parse(msg.slice(2));
         if (eventName === "EXECUTE_REMOTE_TASK") { await _processRemoteTask(data); } 
         else if (eventName === "FLUSH_QUEUED_TASKS") {
-          console.log(`📥 [Agent] Received ${data.tasks.length} queued tasks.`);
           for (const task of data.tasks) { if (globalAgentAbort) break; await _processRemoteTask(task); }
         } 
         else if (eventName === "STOP_REMOTE_TASK") {
@@ -144,14 +166,9 @@ async function initExtensionSocket() {
   };
 
   extSocket.onclose = () => { 
-    console.log("⚠️ [Agent] Bridge Disconnected. Retrying in 5s...");
     if (keepAliveTimer) clearInterval(keepAliveTimer);
     extSocket = null; 
     setTimeout(initExtensionSocket, 5000); 
-  };
-
-  extSocket.onerror = (err) => {
-    console.error("[Agent] WebSocket Error:", err);
   };
 }
 
@@ -163,7 +180,6 @@ function _emitExtEvent(event, data) {
 
 async function _processRemoteTask(taskPayload) {
   const { goal, actions } = taskPayload;
-  console.log("[Agent] Executing Task:", goal);
   _emitExtEvent("EXTENSION_EXECUTION_UPDATE", { userId: extUserId, status: "running", message: `Remote Task Started.` });
   try {
     await _executeAgentWorkflow(actions, goal, { id: null });
@@ -177,7 +193,6 @@ initExtensionSocket();
 
 chrome.storage.onChanged.addListener((changes) => { 
   if (changes.token) {
-    console.log("[Agent] Token updated, re-initializing socket...");
     if (extSocket) extSocket.close();
     initExtensionSocket(); 
   }

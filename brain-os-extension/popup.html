@@ -125,6 +125,7 @@
         text-transform: uppercase;
         color: var(--f);
       }
+      input[type="text"]#name,
       input[type="email"],
       input[type="password"] {
         width: 100%;
@@ -138,6 +139,7 @@
         outline: none;
         transition: border-color 0.15s;
       }
+      input[type="text"]#name:focus,
       input[type="email"]:focus,
       input[type="password"]:focus {
         border-color: var(--bd2);
@@ -172,6 +174,20 @@
         font-weight: 500;
         min-height: 16px;
         text-align: center;
+      }
+      .auth-toggle {
+        margin-top: 8px;
+        font-size: 11.5px;
+        color: var(--m);
+      }
+      .auth-toggle span.link {
+        color: var(--acc);
+        cursor: pointer;
+        font-weight: 600;
+        transition: opacity 0.15s;
+      }
+      .auth-toggle span.link:hover {
+        opacity: 0.8;
       }
 
       .app-hdr {
@@ -624,6 +640,15 @@
         </div>
       </div>
       <div class="auth-form">
+        <div class="field hidden" id="name-field-wrap">
+          <div class="field-lbl">Name</div>
+          <input
+            type="text"
+            id="name"
+            placeholder="Rahul Developer"
+            autocomplete="name"
+          />
+        </div>
         <div class="field">
           <div class="field-lbl">Email</div>
           <input
@@ -644,6 +669,10 @@
         </div>
         <div class="auth-err" id="auth-err"></div>
         <button class="btn-primary" id="login-btn">Connect to Brain OS</button>
+      </div>
+      <div class="auth-toggle">
+        <span id="auth-switch-text">Don't have an account?</span>
+        <span class="link" id="auth-switch-btn">Sign up</span>
       </div>
     </div>
 

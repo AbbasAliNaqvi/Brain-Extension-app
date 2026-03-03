@@ -4,7 +4,7 @@
   window.__brainOS_v62 = true;
   console.log("🚀 [Brain OS] Content script ALIVE (v62 - Professional UI)");
 
-  const API_BASE = "https://brain-extension-exng.onrender.com";
+  const API_BASE = "http://localhost:5050";
   const isYouTube = location.hostname.includes("youtube.com");
   const isGitHub = location.hostname.includes("github.com");
 
@@ -209,9 +209,6 @@
     } catch {}
   }
 
-  // =========================================================
-  // GORGEOUS MAC-OS SPOTLIGHT COMMAND PALETTE (Cmd+K)
-  // =========================================================
   let paletteEl = null;
   let allTabsMap = {};
   let currentViewMode = "main";

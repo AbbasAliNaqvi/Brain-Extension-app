@@ -3,21 +3,24 @@
   if (window.__BrainOS_agent_v1) return;
   window.__BrainOS_agent_v1 = true;
 
-  function _findElement(selectorOrText) {
-    if (!selectorOrText) return null;
-    try {
-      const direct = document.querySelector(selectorOrText);
-      if (direct) return direct;
-    } catch {}
+  function _findElement(selector) {
+    if (!selector) return null;
+    let textToMatch = null;
+    let cssSelector = selector;
+
+    if (selector.toLowerCase().startsWith("text=")) {
+      textToMatch = selector.substring(5).trim().toLowerCase();
+      cssSelector = null;
+    }
 
     if (
-      selectorOrText.startsWith("//") ||
-      selectorOrText.startsWith("/html") ||
-      selectorOrText.startsWith("(")
+      selector.startsWith("//") ||
+      selector.startsWith("/html") ||
+      selector.startsWith("(")
     ) {
       try {
         const xResult = document.evaluate(
-          selectorOrText,
+          selector,
           document,
           null,
           XPathResult.FIRST_ORDERED_NODE_TYPE,
@@ -26,11 +29,16 @@
         if (xResult.singleNodeValue) return xResult.singleNodeValue;
       } catch {}
     }
-
-    const text = selectorOrText.toLowerCase().trim();
+    if (cssSelector) {
+      try {
+        const direct = document.querySelector(cssSelector);
+        if (direct) return direct;
+      } catch {}
+    }
+    const searchStr = textToMatch || selector.toLowerCase().trim();
     const interactables = [
       ...document.querySelectorAll(
-        'button, a, input, textarea, select, [role="button"], [role="link"], [role="menuitem"], label',
+        'button, a, input, textarea, select, [role="button"], [role="link"], [role="menuitem"], label, [contenteditable="true"]',
       ),
     ];
 
@@ -45,9 +53,9 @@
         .toLowerCase()
         .trim();
       return (
-        elText === text ||
-        el.getAttribute("data-testid") === selectorOrText ||
-        el.id === selectorOrText
+        elText === searchStr ||
+        el.getAttribute("data-testid")?.toLowerCase() === searchStr ||
+        el.id?.toLowerCase() === searchStr
       );
     });
     if (exactMatch) return exactMatch;
@@ -60,45 +68,62 @@
         el.getAttribute("aria-label") ||
         ""
       ).toLowerCase();
-      return elText.includes(text);
+      return elText.includes(searchStr);
     });
-    if (partialMatch) return partialMatch;
 
-    return null;
+    return partialMatch || null;
   }
 
   function _simulateInput(el, value) {
-    const nativeInputValueSetter =
-      Object.getOwnPropertyDescriptor(
-        window.HTMLInputElement.prototype,
-        "value",
-      )?.set ||
-      Object.getOwnPropertyDescriptor(
-        window.HTMLTextAreaElement.prototype,
-        "value",
-      )?.set;
-    if (nativeInputValueSetter) nativeInputValueSetter.call(el, value);
-    else el.value = value;
-    el.dispatchEvent(new Event("input", { bubbles: true }));
-    el.dispatchEvent(new Event("change", { bubbles: true }));
-    el.dispatchEvent(new KeyboardEvent("keyup", { bubbles: true }));
+    el.focus();
+
+    const execSuccess = document.execCommand("insertText", false, value);
+
+    if (!execSuccess) {
+      try {
+        if (el.tagName === "TEXTAREA") {
+          const nativeSetter = Object.getOwnPropertyDescriptor(
+            window.HTMLTextAreaElement.prototype,
+            "value",
+          )?.set;
+          if (nativeSetter) nativeSetter.call(el, value);
+          else el.value = value;
+        } else {
+          const nativeSetter = Object.getOwnPropertyDescriptor(
+            window.HTMLInputElement.prototype,
+            "value",
+          )?.set;
+          if (nativeSetter) nativeSetter.call(el, value);
+          else el.value = value;
+        }
+      } catch (e) {
+        el.value = value;
+      }
+    }
+
+    el.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+    el.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
   }
 
   function _simulateClick(el) {
-    el.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }));
-    el.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
-    el.dispatchEvent(new MouseEvent("mouseup", { bubbles: true }));
-    el.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    el.dispatchEvent(
+      new MouseEvent("mouseover", { bubbles: true, composed: true }),
+    );
+    el.dispatchEvent(
+      new MouseEvent("mousedown", { bubbles: true, composed: true }),
+    );
+    el.dispatchEvent(
+      new MouseEvent("mouseup", { bubbles: true, composed: true }),
+    );
+    el.dispatchEvent(
+      new MouseEvent("click", { bubbles: true, composed: true }),
+    );
     el.click?.();
   }
 
-  async function _retryFindElement(
-    selectorOrText,
-    maxRetries = 10,
-    interval = 300,
-  ) {
+  async function _retryFindElement(selector, maxRetries = 10, interval = 300) {
     for (let i = 0; i < maxRetries; i++) {
-      const el = _findElement(selectorOrText);
+      const el = _findElement(selector);
       if (el) return el;
       await new Promise((r) => setTimeout(r, interval));
     }
@@ -123,22 +148,49 @@
       _simulateClick(el);
       return { ok: true };
     }
-    if (action.type === "type") {
-      const el = await _retryFindElement(action.selector);
+    if (action.type === "type" || action.type === "fill") {
+      let el = await _retryFindElement(action.selector);
+      if (!el && action.selector === "body") {
+        el = document.body;
+      }
       if (!el)
         return { ok: false, error: `Input not found: ${action.selector}` };
+
       el.scrollIntoView({ behavior: "smooth", block: "center" });
-      el.focus();
       await new Promise((r) => setTimeout(r, 100));
+
       _simulateInput(el, action.value || "");
+
       if (action.pressEnter) {
-        await new Promise((r) => setTimeout(r, 100));
+        await new Promise((r) => setTimeout(r, 200));
         el.dispatchEvent(
           new KeyboardEvent("keydown", {
             key: "Enter",
             code: "Enter",
             keyCode: 13,
+            which: 13,
             bubbles: true,
+            composed: true,
+          }),
+        );
+        el.dispatchEvent(
+          new KeyboardEvent("keypress", {
+            key: "Enter",
+            code: "Enter",
+            keyCode: 13,
+            which: 13,
+            bubbles: true,
+            composed: true,
+          }),
+        );
+        el.dispatchEvent(
+          new KeyboardEvent("keyup", {
+            key: "Enter",
+            code: "Enter",
+            keyCode: 13,
+            which: 13,
+            bubbles: true,
+            composed: true,
           }),
         );
       }

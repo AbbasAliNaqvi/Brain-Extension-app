@@ -1,4 +1,4 @@
-const API_BASE = "https://brain-extension-exng.onrender.com";
+const API_BASE = "http://localhost:5050";
 const $ = (id) => document.getElementById(id);
 let token = null,
   flashcards = [];
@@ -66,28 +66,60 @@ function showApp(data = {}) {
   loadMe();
 }
 
+let isLoginMode = true;
+$("auth-switch-btn")?.addEventListener("click", () => {
+  isLoginMode = !isLoginMode;
+  const nameWrap = $("name-field-wrap");
+  const loginBtn = $("login-btn");
+  const switchTxt = $("auth-switch-text");
+  const switchBtn = $("auth-switch-btn");
+  const errEl = $("auth-err");
+
+  if (errEl) errEl.textContent = "";
+
+  if (isLoginMode) {
+    nameWrap.classList.add("hidden");
+    loginBtn.textContent = "Connect to Brain OS";
+    switchTxt.textContent = "Don't have an account?";
+    switchBtn.textContent = "Sign up";
+  } else {
+    nameWrap.classList.remove("hidden");
+    loginBtn.textContent = "Create Account";
+    switchTxt.textContent = "Already have an account?";
+    switchBtn.textContent = "Log in";
+  }
+});
+
 $("login-btn")?.addEventListener("click", async () => {
   const email = $("email")?.value.trim();
   const password = $("password")?.value;
+  const name = $("name")?.value.trim();
   const btn = $("login-btn");
   const errEl = $("auth-err");
-  if (!email || !password) {
-    if (errEl) errEl.textContent = "Email and password required.";
+
+  if (!email || !password || (!isLoginMode && !name)) {
+    if (errEl) errEl.textContent = "All fields are required.";
     return;
   }
+  
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML = '<span class="spin"></span>Authenticating…';
+    btn.innerHTML = `<span class="spin"></span>${isLoginMode ? 'Authenticating…' : 'Creating Account…'}`;
   }
   if (errEl) errEl.textContent = "";
+
+  const endpoint = isLoginMode ? '/auth/login' : '/auth/signup';
+  const bodyData = isLoginMode ? { email, password } : { name, email, password };
+
   try {
-    const res = await fetch(`${API_BASE}/auth/login`, {
+    const res = await fetch(`${API_BASE}${endpoint}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify(bodyData),
     });
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Invalid credentials");
+    if (!res.ok) throw new Error(data.message || (isLoginMode ? "Invalid credentials" : "Registration failed"));
+    
     token = data.accessToken || data.token;
     await chrome.storage.local.set({ token });
     showApp({});
@@ -97,7 +129,7 @@ $("login-btn")?.addEventListener("click", async () => {
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = "Connect to Brain OS";
+      btn.textContent = isLoginMode ? "Connect to Brain OS" : "Create Account";
     }
   }
 });

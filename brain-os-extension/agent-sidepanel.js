@@ -51,9 +51,11 @@ async function _runAgent() {
       },
       body: JSON.stringify({ prompt }),
     });
+
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Planning failed");
     const { goal, actions } = data;
+
     if (!actions?.length)
       throw new Error("No actions generated. Try a more specific command.");
 
@@ -62,7 +64,7 @@ async function _runAgent() {
     if (statusBadge) statusBadge.textContent = "Running";
     if (runBtn) runBtn.innerHTML = `<div class="step-spinner"></div>Running…`;
 
-    _agentLog("running", `Executing ${actions.length} steps…`);
+    _agentLog("running", `Executing ${actions.length} steps in your browser…`);
 
     chrome.runtime.sendMessage({
       type: "AGENT_EXECUTE",
@@ -150,3 +152,89 @@ chrome.runtime.onMessage.addListener((msg) => {
   if (msg.type === "AGENT_ERROR")
     _handleAgentStatus({ type: "error", message: msg.message });
 });
+
+const micBtn = $("agent-mic-btn");
+const agentInput = $("agent-input");
+let recognition = null;
+let isListening = false;
+
+if ("webkitSpeechRecognition" in window) {
+  recognition = new webkitSpeechRecognition();
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.lang = "en-US";
+
+  recognition.onstart = () => {
+    isListening = true;
+    if (micBtn) micBtn.classList.add("listening");
+    if (agentInput) agentInput.placeholder = "Listening... Speak your command.";
+  };
+
+  recognition.onresult = (event) => {
+    let finalTranscript = "";
+    let interimTranscript = "";
+
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
+      if (event.results[i].isFinal) {
+        finalTranscript += event.results[i][0].transcript;
+      } else {
+        interimTranscript += event.results[i][0].transcript;
+      }
+    }
+
+    if (agentInput) {
+      agentInput.value = finalTranscript || interimTranscript;
+    }
+  };
+
+  recognition.onerror = (event) => {
+    console.error("Speech recognition error:", event.error);
+    _stopListening();
+  };
+
+  recognition.onend = () => {
+    _stopListening();
+    const finalCommand = agentInput?.value.trim();
+    if (finalCommand && finalCommand.length > 3 && !agentRunning) {
+      _runAgent();
+    }
+  };
+} else {
+  if (micBtn) micBtn.style.display = "none";
+}
+
+async function _toggleListening() {
+  if (!recognition) return;
+
+  if (isListening) {
+    recognition.stop();
+  } else {
+    try {
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+
+      if (agentInput) agentInput.value = "";
+      recognition.start();
+    } catch (err) {
+      console.error("Microphone access denied:", err);
+      if (agentInput) {
+        agentInput.value = "";
+        agentInput.placeholder =
+          "HEY! Mic access denied. Right-click Extension -> Manage Extension -> Site Settings -> Allow Microphone.";
+      }
+      _stopListening();
+    }
+  }
+}
+
+function _stopListening() {
+  isListening = false;
+  if (micBtn) micBtn.classList.remove("listening");
+  if (agentInput && !agentInput.value) {
+    agentInput.placeholder =
+      'Try: "Go to GitHub, search for React, click the first repo"\nOr: "Open LinkedIn jobs page for Frontend Developer in Bangalore"\nOr: "Search Google for best DSA resources India"';
+  }
+}
+
+if (micBtn) {
+  micBtn.addEventListener("click", _toggleListening);
+}

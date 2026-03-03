@@ -1,6 +1,7 @@
 importScripts("agent-background.js");
 
-const API_BASE = "https://brain-extension-exng.onrender.com";
+//const API_BASE = "http://localhost:5050";
+const API_BASE = "http://localhost:5050";
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.removeAll(() => {
