@@ -20,7 +20,7 @@
     "tabGroups"
   ],
   "host_permissions": [
-    "http://localhost:5050/*",
+    "https://brain-extension-exng.onrender.com/*",
     "https://*.youtube.com/*",
     "https://api.github.com/*",
     "<all_urls>"

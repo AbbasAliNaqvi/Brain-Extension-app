@@ -4,7 +4,7 @@
   window.__brainOS_v62 = true;
   console.log("[Brain OS] Content script ALIVE (v62 - Professional UI)");
 
-  const API_BASE = "http://localhost:5050";
+  const API_BASE = "https://brain-extension-exng.onrender.com";
   const isYouTube = location.hostname.includes("youtube.com");
   const isGitHub = location.hostname.includes("github.com");
 
@@ -172,70 +172,75 @@
     sendMsg({ type: "TOOLBAR_ACTION", mode: action, text: currentText });
   }
 
-async function _runMagicTranslate(text) {
-  console.log("[Brain OS] Starting translation for:", text);
+  async function _runMagicTranslate(text) {
+    console.log("[Brain OS] Starting translation for:", text);
 
-  let { token, targetLanguage } = await chrome.storage.local.get(["token", "targetLanguage"]);
-  
-  if (!token) {
-    console.error("[Brain OS] Auth token missing. Cannot call translation API.");
-    return;
-  }
+    let { token, targetLanguage } = await chrome.storage.local.get([
+      "token",
+      "targetLanguage",
+    ]);
 
-  const sel = window.getSelection();
-  if (!sel || !sel.rangeCount) {
-    console.error("[Brain OS] No active DOM selection found.");
-    return;
-  }
-
-  const range = sel.getRangeAt(0);
-  const wrapper = document.createElement("span");
-  wrapper.style.opacity = "0.6";
-  wrapper.style.backgroundColor = "rgba(16, 185, 129, 0.2)";
-
-  try {
-    const contents = range.extractContents();
-    wrapper.appendChild(contents);
-    range.insertNode(wrapper);
-  } catch (e) {
-    console.error("[Brain OS] DOM manipulation failed:", e);
-    return;
-  }
-
-  console.log(`[Brain OS] Calling API: ${API_BASE}/brain/translate`);
-
-  try {
-    const res = await fetch(`${API_BASE}/brain/translate`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        text: text,
-        targetLanguage: (targetLanguage || "hindi").toLowerCase().trim()
-      }),
-    });
-
-    const data = await res.json();
-    console.log("[Brain OS] API Response:", data);
-
-    if (res.ok && data.status === "OK") {
-      wrapper.textContent = data.translation;
-      wrapper.style.opacity = "1";
-      wrapper.style.backgroundColor = "rgba(16, 185, 129, 0.1)";
-      wrapper.style.borderRadius = "3px";
-      wrapper.title = `Original: ${text}`;
-    } else {
-      console.error("[Brain OS] API returned error:", data.message);
-      wrapper.textContent = text; 
-      wrapper.style.backgroundColor = "rgba(239, 68, 68, 0.2)"; 
+    if (!token) {
+      console.error(
+        "[Brain OS] Auth token missing. Cannot call translation API.",
+      );
+      return;
     }
-  } catch (err) {
-    console.error("[Brain OS] Network or Fetch Error:", err);
-    wrapper.textContent = text; 
+
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount) {
+      console.error("[Brain OS] No active DOM selection found.");
+      return;
+    }
+
+    const range = sel.getRangeAt(0);
+    const wrapper = document.createElement("span");
+    wrapper.style.opacity = "0.6";
+    wrapper.style.backgroundColor = "rgba(16, 185, 129, 0.2)";
+
+    try {
+      const contents = range.extractContents();
+      wrapper.appendChild(contents);
+      range.insertNode(wrapper);
+    } catch (e) {
+      console.error("[Brain OS] DOM manipulation failed:", e);
+      return;
+    }
+
+    console.log(`[Brain OS] Calling API: ${API_BASE}/brain/translate`);
+
+    try {
+      const res = await fetch(`${API_BASE}/brain/translate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          text: text,
+          targetLanguage: (targetLanguage || "hindi").toLowerCase().trim(),
+        }),
+      });
+
+      const data = await res.json();
+      console.log("[Brain OS] API Response:", data);
+
+      if (res.ok && data.status === "OK") {
+        wrapper.textContent = data.translation;
+        wrapper.style.opacity = "1";
+        wrapper.style.backgroundColor = "rgba(16, 185, 129, 0.1)";
+        wrapper.style.borderRadius = "3px";
+        wrapper.title = `Original: ${text}`;
+      } else {
+        console.error("[Brain OS] API returned error:", data.message);
+        wrapper.textContent = text;
+        wrapper.style.backgroundColor = "rgba(239, 68, 68, 0.2)";
+      }
+    } catch (err) {
+      console.error("[Brain OS] Network or Fetch Error:", err);
+      wrapper.textContent = text;
+    }
   }
-}
 
   let paletteEl = null;
   let allTabsMap = {};
@@ -425,19 +430,19 @@ async function _runMagicTranslate(text) {
     const results = paletteEl.querySelector("#__brain_pr");
     const input = paletteEl.querySelector("#__brain_pi");
 
-    const childrenHtml = activeClusterData.tabIds
+    const childrenHtml = (activeClusterData.tabIds || [])
       .map((id) => {
         const t = allTabsMap[id];
         if (!t) return "";
         return `
-              <div class="pi" data-pa="tab" data-tabid="${t.id}">
-                  <span class="pi-ic"><img src="${getFaviconUrl(t.url)}" class="favicon" onerror="this.outerHTML='<span class=\\'pi-ic\\'>${ICONS.tabIcon}</span>'" /></span>
-                  <div class="pi-body">
-                      <div class="pi-t">${_esc(t.title)}</div>
-                      <div class="pi-s">${_esc(new URL(t.url).hostname.replace(/^www\./, ""))}</div>
-                  </div>
-              </div>
-          `;
+      <div class="pi" data-pa="tab" data-tabid="${t.id}">
+        <span class="pi-ic"><img src="${getFaviconUrl(t.url)}" class="favicon" onerror="this.outerHTML='<span class=\\'pi-ic\\'>${ICONS.tabIcon}</span>'" /></span>
+        <div class="pi-body">
+          <div class="pi-t">${_esc(t.title)}</div>
+          <div class="pi-s">${_esc(new URL(t.url).hostname.replace(/^www\./, ""))}</div>
+        </div>
+      </div>
+    `;
       })
       .join("");
 
@@ -483,6 +488,7 @@ async function _runMagicTranslate(text) {
   function _openPalette() {
     if (!paletteEl) _buildPalette();
     paletteEl.classList.add("open");
+
     const input = paletteEl.querySelector("#__brain_pi");
     input.value = "";
     input.placeholder = "Search your Second Brain...";
@@ -492,30 +498,32 @@ async function _runMagicTranslate(text) {
     const results = paletteEl.querySelector("#__brain_pr");
 
     results.innerHTML = `
-      <div class="psl">Quick Actions</div>
-      <div class="pi" data-pa="panel">
-        <span class="pi-ic">${ICONS.layers}</span>
-        <div class="pi-body">
-          <div class="pi-t">Open Brain OS Panel</div>
-          <div class="pi-s">Access all extension features</div>
-        </div>
+    <div class="psl">Quick Actions</div>
+    <div class="pi" data-pa="panel">
+      <span class="pi-ic">${ICONS.layers}</span>
+      <div class="pi-body">
+        <div class="pi-t">Open Brain OS Panel</div>
+        <div class="pi-s">Access all extension features</div>
       </div>
-      <div class="pi" data-pa="snap">
-        <span class="pi-ic">${ICONS.camera}</span>
-        <div class="pi-body">
-          <div class="pi-t">Snap &amp; Learn</div>
-          <div class="pi-s">Capture &amp; explain current screen</div>
-        </div>
+    </div>
+    <div class="pi" data-pa="snap">
+      <span class="pi-ic">${ICONS.camera}</span>
+      <div class="pi-body">
+        <div class="pi-t">Snap &amp; Learn</div>
+        <div class="pi-s">Capture &amp; explain current screen</div>
       </div>
-      <div class="psl" style="margin-top:8px">AI ContextOS</div>
-      <div class="p-spin" id="__ctx_loading">Groq is analyzing your cognitive load...</div>
-    `;
+    </div>
+    <div class="psl" style="margin-top:8px">AI ContextOS</div>
+    <div class="p-spin" id="__ctx_loading">Analyzing your cognitive load...</div>
+  `;
 
     try {
       chrome.runtime.sendMessage({ type: "GET_ALL_TABS" }, (result) => {
-        const allTabs = result?.tabs || [];
+        const allTabs = Array.isArray(result?.tabs) ? result.tabs : [];
         allTabsMap = {};
-        allTabs.forEach((t) => (allTabsMap[t.id] = t));
+        allTabs.forEach((t) => {
+          if (t?.id != null) allTabsMap[t.id] = t;
+        });
 
         chrome.runtime.sendMessage({ type: "CLUSTER_TABS" }, (resp) => {
           const loadingEl = results.querySelector("#__ctx_loading");
@@ -523,19 +531,24 @@ async function _runMagicTranslate(text) {
 
           if (chrome.runtime.lastError || !resp || resp.status === "ERROR") {
             loadingEl.outerHTML = `<div class="pe" style="color:#ef4444">ContextOS offline. Error: ${resp?.message || "Network issue"}</div>`;
-          } else if (resp.clusters && resp.clusters.length > 0) {
-            loadingEl.outerHTML = resp.clusters
+            return;
+          }
+
+          const clusters = Array.isArray(resp.clusters) ? resp.clusters : [];
+          if (clusters.length > 0) {
+            loadingEl.outerHTML = clusters
               .map((c) => {
+                const tabCount = Array.isArray(c.tabIds) ? c.tabIds.length : 0;
                 return `
-                    <div class="pi ctx-cluster" data-cluster='${JSON.stringify(c).replace(/'/g, "&#39;")}'>
-                        <span class="pi-ic">${ICONS.folder}</span>
-                        <div class="pi-body">
-                            <div class="pi-t">${_esc(c.clusterName)}</div>
-                            <div class="pi-s">Click to open • ${c.tabIds.length} Tabs</div>
-                        </div>
-                        <span style="color:#666; font-size:16px;">→</span>
-                    </div>
-                `;
+                <div class="pi ctx-cluster" data-cluster='${JSON.stringify(c).replace(/'/g, "&#39;")}'>
+                  <span class="pi-ic">${ICONS.folder}</span>
+                  <div class="pi-body">
+                    <div class="pi-t">${_esc(c.clusterName)}</div>
+                    <div class="pi-s">Click to open • ${tabCount} Tabs</div>
+                  </div>
+                  <span style="color:#666; font-size:16px;">→</span>
+                </div>
+              `;
               })
               .join("");
           } else {
@@ -544,34 +557,35 @@ async function _runMagicTranslate(text) {
 
           if (allTabs.length > 0) {
             const tabsHTML = `
-                    <div class="psl" style="margin-top:12px" id="__tabs_lbl">All Open Tabs (${allTabs.length})</div>
-                    ${allTabs
-                      .map((t) => {
-                        let host = "";
-                        try {
-                          host = new URL(t.url).hostname.replace(/^www\./, "");
-                        } catch {}
-                        return `
-                            <div class="pi" data-pa="tab" data-tabid="${t.id}">
-                                <span class="pi-ic"><img src="${getFaviconUrl(t.url)}" class="favicon" onerror="this.outerHTML='<span class=\\'pi-ic\\'>${ICONS.tabIcon}</span>'" /></span>
-                                <div class="pi-body">
-                                    <div class="pi-t">${_esc(t.title || "Untitled")}</div>
-                                    <div class="pi-s">${_esc(host)}</div>
-                                </div>
-                            </div>
-                        `;
-                      })
-                      .join("")}
+            <div class="psl" style="margin-top:12px" id="__tabs_lbl">All Open Tabs (${allTabs.length})</div>
+            ${allTabs
+              .map((t) => {
+                let host = "";
+                try {
+                  host = new URL(t.url).hostname.replace(/^www\./, "");
+                } catch {}
+                return `
+                  <div class="pi" data-pa="tab" data-tabid="${t.id}">
+                    <span class="pi-ic"><img src="${getFaviconUrl(t.url)}" class="favicon" onerror="this.outerHTML='<span class=\\'pi-ic\\'>${ICONS.tabIcon}</span>'" /></span>
+                    <div class="pi-body">
+                      <div class="pi-t">${_esc(t.title || "Untitled")}</div>
+                      <div class="pi-s">${_esc(host)}</div>
+                    </div>
+                  </div>
                 `;
+              })
+              .join("")}
+          `;
             results.insertAdjacentHTML("beforeend", tabsHTML);
           }
 
           mainMenuHTML = results.innerHTML;
         });
       });
-    } catch (e) {}
+    } catch (e) {
+      console.error("[Brain OS] Palette load failed:", e);
+    }
   }
-
   function _closePalette() {
     paletteEl?.classList.remove("open");
   }
@@ -623,7 +637,7 @@ async function _runMagicTranslate(text) {
       sendResponse({ ok: true });
       return true;
     }
-    
+
     if (msg.type === "TRANSLATE_SELECTION") {
       _runMagicTranslate(msg.text);
       sendResponse({ ok: true });

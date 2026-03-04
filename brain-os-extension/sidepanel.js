@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:5050";
+const API_BASE = "https://brain-extension-exng.onrender.com";
 const $ = (id) => document.getElementById(id);
 
 let token = null;
