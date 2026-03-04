@@ -64,7 +64,7 @@
         flex: 1;
         padding: 28px 24px;
         text-align: center;
-        gap: 18px;
+        /* gap: 18px; */
         animation: fu 0.3s ease;
       }
       #app-wrap {
@@ -84,38 +84,48 @@
         }
       }
 
-      .auth-logo {
-        width: 48px;
-        height: 48px;
-        background: var(--s);
-        border: 1px solid var(--bd2);
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 22px;
+      .auth-logo-img {
+        width: 174px;
+        height: auto;
+        filter: invert(1) drop-shadow(0 0 10px rgba(255, 255, 255, 0.15));
+        margin-bottom: -25px;
       }
+
+      @keyframes auth-float {
+        0%,
+        100% {
+          transform: translateY(0);
+          filter: invert(1) drop-shadow(0 0 10px rgba(255, 255, 255, 0.1));
+        }
+        50% {
+          transform: translateY(-6px);
+          filter: invert(1) drop-shadow(0 0 20px rgba(255, 255, 255, 0.35));
+        }
+      }
+
       .auth-h {
-        font-size: 20px;
-        font-weight: 700;
-        letter-spacing: -0.4px;
+        font-size: 22px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        color: var(--t);
       }
       .auth-sub {
-        font-size: 12px;
+        font-size: 12.5px;
         color: var(--m);
-        line-height: 1.6;
+        line-height: 1.5;
         max-width: 240px;
       }
       .auth-form {
         width: 100%;
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 12px;
+        /* margin-top: 8px; */
       }
       .field {
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 6px;
         text-align: left;
       }
       .field-lbl {
@@ -123,50 +133,60 @@
         font-weight: 600;
         letter-spacing: 0.8px;
         text-transform: uppercase;
-        color: var(--f);
+        color: #777;
+        margin-left: 2px;
       }
       input[type="text"]#name,
       input[type="email"],
       input[type="password"] {
         width: 100%;
-        background: var(--s);
-        border: 1px solid var(--bd);
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.12);
         color: var(--t);
-        padding: 10px 12px;
+        padding: 12px 14px;
         border-radius: var(--r);
         font-size: 13px;
         font-family: var(--font);
         outline: none;
-        transition: border-color 0.15s;
+        transition: all 0.2s ease;
       }
       input[type="text"]#name:focus,
       input[type="email"]:focus,
       input[type="password"]:focus {
-        border-color: var(--bd2);
+        border-color: rgba(255, 255, 255, 0.4);
+        background: rgba(255, 255, 255, 0.06);
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05);
       }
       input::placeholder {
-        color: var(--f);
+        color: #555;
       }
       .btn-primary {
         width: 100%;
         background: var(--t);
         color: var(--bg);
         border: none;
-        padding: 11px;
+        padding: 12px;
         border-radius: var(--r);
         font-weight: 700;
         font-size: 13px;
         font-family: var(--font);
         cursor: pointer;
-        transition: opacity 0.15s;
-        margin-top: 4px;
+        transition: all 0.2s ease;
+        margin-top: 8px;
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
       }
       .btn-primary:hover {
-        opacity: 0.88;
+        background: #ffffff;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+      }
+      .btn-primary:active {
+        transform: translateY(1px);
       }
       .btn-primary:disabled {
-        opacity: 0.4;
+        opacity: 0.5;
         cursor: not-allowed;
+        transform: none;
       }
       .auth-err {
         color: #fca5a5;
@@ -176,18 +196,22 @@
         text-align: center;
       }
       .auth-toggle {
-        margin-top: 8px;
-        font-size: 11.5px;
+        margin-top: 12px;
+        font-size: 12px;
         color: var(--m);
       }
       .auth-toggle span.link {
-        color: var(--acc);
+        color: var(--t);
         cursor: pointer;
         font-weight: 600;
-        transition: opacity 0.15s;
+        text-decoration: underline;
+        text-decoration-color: rgba(255, 255, 255, 0.2);
+        text-underline-offset: 3px;
+        transition: all 0.2s;
+        margin-left: 4px;
       }
       .auth-toggle span.link:hover {
-        opacity: 0.8;
+        text-decoration-color: var(--t);
       }
 
       .app-hdr {
@@ -628,17 +652,302 @@
       .hidden {
         display: none !important;
       }
+
+      /* --- ADVANCED SPLASH SCREEN CSS --- */
+      #splash-screen {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          circle at center,
+          #111111 0%,
+          var(--bg) 100%
+        );
+        z-index: 9999;
+        transition:
+          opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+          visibility 0.5s;
+        overflow: hidden;
+      }
+
+
+      .neural-net {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+      }
+      .node {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: var(--acc);
+        border-radius: 50%;
+        box-shadow:
+          0 0 10px var(--acc),
+          0 0 20px var(--acc);
+        animation: pulse-node 2s infinite alternate;
+      }
+      .node::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 60px;
+        height: 1px;
+        background: linear-gradient(90deg, var(--acc) 0%, transparent 100%);
+        transform-origin: 0 0;
+        opacity: 0.35;
+      }
+
+      .n1 {
+        top: 25%;
+        left: 25%;
+        animation-delay: 0.1s;
+      }
+      .n1::after {
+        transform: rotate(45deg);
+      }
+
+      .n2 {
+        top: 20%;
+        right: 28%;
+        animation-delay: 0.7s;
+      }
+      .n2::after {
+        transform: rotate(135deg);
+      }
+
+      .n3 {
+        bottom: 35%;
+        left: 20%;
+        animation-delay: 0.4s;
+      }
+      .n3::after {
+        transform: rotate(-35deg);
+      }
+
+      .n4 {
+        bottom: 30%;
+        right: 22%;
+        animation-delay: 0.9s;
+      }
+      .n4::after {
+        transform: rotate(-145deg);
+      }
+
+      .n5 {
+        top: 48%;
+        left: 12%;
+        animation-delay: 0.3s;
+      }
+      .n5::after {
+        transform: rotate(15deg);
+      }
+
+      .n6 {
+        top: 52%;
+        right: 15%;
+        animation-delay: 0.8s;
+      }
+      .n6::after {
+        transform: rotate(165deg);
+      }
+
+      @keyframes pulse-node {
+        0% {
+          transform: scale(0.8);
+          opacity: 0.3;
+        }
+        100% {
+          transform: scale(1.5);
+          opacity: 1;
+        }
+      }
+
+      /* Central Brain Logo */
+      .splash-logo {
+        width: 230px;
+        height: auto;
+        z-index: 2;
+        /* Inverts the black image to white, then applies a glowing green shadow */
+        filter: invert(1) drop-shadow(0 0 15px rgba(16, 185, 129, 0.6));
+        /* animation: float-logo 3s ease-in-out infinite; */
+        margin-bottom: 20px;
+      }
+
+      @keyframes float-logo {
+        0%,
+        100% {
+          transform: translateY(0px) scale(1);
+          filter: invert(1) drop-shadow(0 0 15px rgba(16, 185, 129, 0.5));
+        }
+        50% {
+          transform: translateY(-10px) scale(1.05);
+          filter: invert(1) drop-shadow(0 0 25px rgba(16, 185, 129, 0.9));
+        }
+      }
+
+      /* Cyberpunk Shimmering Text */
+      .splash-text {
+        z-index: 2;
+        font-size: 13px;
+        font-weight: 800;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+        margin-bottom: 28px;
+        background: linear-gradient(110deg, #666 20%, #fff 50%, #666 80%);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: text-shine 2s linear infinite;
+      }
+      @keyframes text-shine {
+        to {
+          background-position: -200% center;
+        }
+      }
+
+      .splash-loading {
+        width: 140px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 4px;
+        overflow: hidden;
+        position: relative;
+        z-index: 2;
+        box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.5);
+      }
+      .splash-bar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 25%;
+        background: var(--acc);
+        box-shadow:
+          0 0 10px var(--acc),
+          0 0 20px var(--acc);
+        border-radius: 4px;
+        animation: splash-load 1.4s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+      }
+
+      @keyframes splash-load {
+        0% {
+          left: -25%;
+          width: 25%;
+        }
+        50% {
+          width: 45%;
+        }
+        100% {
+          left: 100%;
+          width: 25%;
+        }
+      }
+
+      /* --- SIDE PANEL PROMO BANNER --- */
+
+      @keyframes banner-pulse {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+        }
+        50% {
+          box-shadow: 0 0 12px 0 rgba(255, 255, 255, 0.12);
+        }
+      }
+      .sp-banner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 12px 12px 4px;
+        padding: 10px 12px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: var(--r);
+        animation:
+          fu 0.4s ease,
+          banner-pulse 3.5s infinite;
+      }
+      .sp-banner-left {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      .sp-banner-title {
+        font-size: 11.5px;
+        font-weight: 700;
+        color: var(--t);
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        letter-spacing: 0.3px;
+      }
+      .sp-banner-sub {
+        font-size: 10.5px;
+        color: var(--m);
+        line-height: 1.3;
+      }
+      .sp-open-btn {
+        background: var(--t);
+        color: var(--bg);
+        border: none;
+        padding: 7px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 700;
+        font-family: var(--font);
+        cursor: pointer;
+        flex-shrink: 0;
+        transition:
+          transform 0.15s,
+          opacity 0.15s,
+          background 0.15s;
+        box-shadow: 0 2px 10px rgba(255, 255, 255, 0.15);
+      }
+      .sp-open-btn:hover {
+        opacity: 1;
+        background: #ffffff;
+        transform: scale(1.03);
+      }
+      .sp-open-btn:active {
+        transform: scale(0.97);
+      }
     </style>
   </head>
   <body>
+    <div id="splash-screen">
+      <div class="neural-net">
+        <div class="node n1"></div>
+        <div class="node n2"></div>
+        <div class="node n3"></div>
+        <div class="node n4"></div>
+        <div class="node n5"></div>
+        <div class="node n6"></div>
+      </div>
+
+      <img src="iconmain.png" alt="Brain OS Logo" class="splash-logo" />
+
+      <div class="splash-text" id="splash-status">Booting Brain Extension</div>
+
+      <div class="splash-loading">
+        <div class="splash-bar"></div>
+      </div>
+    </div>
     <div id="auth-screen">
-      <div class="auth-logo">⬡</div>
+      <img src="iconmain.png" alt="Brain OS Logo" class="auth-logo-img" />
+
       <div>
-        <div class="auth-h">Brain OS</div>
+        <div class="auth-h">Brain Extension</div>
         <div class="auth-sub" style="margin-top: 5px">
-          AI-powered Second Brain. Built for Bharat.
+          AI-powered Second Brain.<br />Built for Bharat.
         </div>
       </div>
+
       <div class="auth-form">
         <div class="field hidden" id="name-field-wrap">
           <div class="field-lbl">Name</div>
@@ -668,8 +977,9 @@
           />
         </div>
         <div class="auth-err" id="auth-err"></div>
-        <button class="btn-primary" id="login-btn">Connect to Brain OS</button>
+        <button class="btn-primary" id="login-btn">Connect to Brain</button>
       </div>
+
       <div class="auth-toggle">
         <span id="auth-switch-text">Don't have an account?</span>
         <span class="link" id="auth-switch-btn">Sign up</span>
@@ -683,6 +993,27 @@
           <span class="user-email" id="user-email"></span>
           <button class="logout-btn" id="logout-btn">Logout</button>
         </div>
+      </div>
+      <div class="sp-banner" id="sp-banner">
+        <div class="sp-banner-left">
+          <div class="sp-banner-title">
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <line x1="9" y1="3" x2="9" y2="21" />
+            </svg>
+            Meet Your AI-Agent Brain Copilot
+          </div>
+        </div>
+        <button class="sp-open-btn" id="open-sp-btn">Open Panel</button>
       </div>
 
       <div class="tab-nav">

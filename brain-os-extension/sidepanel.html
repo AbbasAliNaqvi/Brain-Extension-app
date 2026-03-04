@@ -1563,17 +1563,19 @@
 
             <div class="quick-row">
               <div class="quick-sel">
+              <div class="quick-sel">
                 <span class="quick-lbl">Lang</span>
-                <select id="lang-select">
-                  <option value="English">English</option>
-                  <option value="Hindi">Hindi</option>
-                  <option value="Hinglish">Hinglish</option>
-                  <option value="Tamil">Tamil</option>
-                  <option value="Telugu">Telugu</option>
-                  <option value="Bengali">Bengali</option>
-                  <option value="Marathi">Marathi</option>
-                  <option value="Spanish">Spanish</option>
-                </select>
+                <input id="lang-select" list="lang-dl" placeholder="Custom..." value="English" />
+                <datalist id="lang-dl">
+                  <option value="English"></option>
+                  <option value="Hindi"></option>
+                  <option value="Hinglish"></option>
+                  <option value="Tamil"></option>
+                  <option value="Telugu"></option>
+                  <option value="Bengali"></option>
+                  <option value="Marathi"></option>
+                  <option value="Spanish"></option>
+                </datalist>
               </div>
               <div class="quick-sel">
                 <span class="quick-lbl">WS</span>
@@ -1645,12 +1647,14 @@
             <div class="settings-row">
               <div class="quick-sel">
                 <span class="quick-lbl">Lang</span>
-                <select id="ws-lang-select">
-                  <option value="English">English</option>
-                  <option value="Hindi">Hindi</option>
-                  <option value="Hinglish">Hinglish</option>
-                  <option value="Tamil">Tamil</option>
-                </select>
+                <input id="ws-lang-select" list="ws-lang-dl" placeholder="Custom..." value="English" />
+                <datalist id="ws-lang-dl">
+                  <option value="English"></option>
+                  <option value="Hindi"></option>
+                  <option value="Hinglish"></option>
+                  <option value="Tamil"></option>
+                  <option value="Telugu"></option>
+                </datalist>
               </div>
               <div class="quick-sel">
                 <span class="quick-lbl">WS</span>

@@ -1,6 +1,5 @@
 importScripts("agent-background.js");
 
-//const API_BASE = "http://localhost:5050";
 const API_BASE = "http://localhost:5050";
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -44,20 +43,13 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
       "brain-save": "save",
     };
     const mode = modeMap[info.menuItemId];
-    if (mode === "magic_translate" && tab?.id) {
-      chrome.scripting
-        .executeScript({
-          target: { tabId: tab.id },
-          func: (t) =>
-            window.dispatchEvent(
-              new CustomEvent("brain:magic_translate", {
-                detail: { text: t, language: "Hindi" },
-              }),
-            ),
-          args: [info.selectionText],
-        })
-        .catch(() => {});
-    } else if (mode === "save" && tab?.id) {
+  if (mode === "magic_translate" && tab?.id) {
+  chrome.tabs.sendMessage(tab.id, { 
+    type: "TRANSLATE_SELECTION", 
+    text: info.selectionText 
+  }).catch(err => console.error("Translate trigger failed:", err));
+  }
+  else if (mode === "save" && tab?.id) {
       _quickSave(info.selectionText, tab.id);
     } else if (mode) {
       await chrome.storage.local.set({

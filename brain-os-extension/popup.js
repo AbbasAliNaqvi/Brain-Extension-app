@@ -15,6 +15,10 @@ function sendMsg(payload, cb) {
 }
 
 (async function init() {
+  const SPLASH_DURATION = 5500; 
+  const splashDelay = new Promise(resolve => setTimeout(resolve, SPLASH_DURATION));
+  fetch(`${API_BASE}/health`).catch(err => console.log("[Brain OS] Waking up backend..."));
+
   try {
     const data = await chrome.storage.local.get([
       "token",
@@ -25,6 +29,17 @@ function sendMsg(payload, cb) {
       "githubAgent",
       "youtubeSync",
     ]);
+
+    await splashDelay;
+
+    const splash = $("splash-screen");
+    if (splash) {
+      splash.style.opacity = "0";
+      setTimeout(() => {
+        splash.style.display = "none";
+      }, 400); 
+    }
+
     if (!data.token) {
       showAuth();
       return;
@@ -33,6 +48,12 @@ function sendMsg(payload, cb) {
     showApp(data);
     loadStats();
   } catch {
+    await splashDelay;
+    const splash = $("splash-screen");
+    if (splash) {
+      splash.style.opacity = "0";
+      setTimeout(() => { splash.style.display = "none"; }, 400);
+    }
     showAuth();
   }
 })();
@@ -361,3 +382,17 @@ function _esc(s) {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;");
 }
+
+$("open-sp-btn")?.addEventListener("click", async () => {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    
+    if (tab && tab.windowId) {
+      await chrome.sidePanel.open({ windowId: tab.windowId });
+    
+      window.close(); 
+    }
+  } catch (err) {
+    console.error("[Brain OS] Failed to open side panel:", err);
+  }
+});

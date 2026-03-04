@@ -73,7 +73,7 @@ function navigateTo(screenId, title) {
   activeScreen = screenId;
   const backBtn = $("back-btn");
   const navTitle = $("nav-title");
-  
+
   if (screenId === "home") {
     backBtn?.classList.add("hidden");
   } else {
@@ -154,9 +154,9 @@ async function init() {
     "lastSelection",
     "pendingMode",
     "snapLearnImage",
-    "youtubeContext"
+    "youtubeContext",
   ]);
-  
+
   if (!data.token) {
     _showGate();
     return;
@@ -349,10 +349,15 @@ async function triggerMode(mode) {
     return;
   }
   if (mode === "magic_translate") {
-    chrome.runtime.sendMessage({
-      type: "TOOLBAR_ACTION",
-      mode: "magic_translate",
-      text: currentText,
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]?.id) {
+        chrome.tabs
+          .sendMessage(tabs[0].id, {
+            type: "TRANSLATE_SELECTION",
+            text: currentText,
+          })
+          .catch((err) => console.error("Sidepanel translation error:", err));
+      }
     });
     return;
   }
@@ -691,12 +696,18 @@ document.querySelectorAll(".tool-card[data-to]").forEach((btn) => {
 
 $("save-btn-home")?.addEventListener("click", () => handleSave());
 $("translate-btn-home")?.addEventListener("click", () => {
-  if (currentText)
-    chrome.runtime.sendMessage({
-      type: "TOOLBAR_ACTION",
-      mode: "magic_translate",
-      text: currentText,
+  if (currentText) {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs[0]?.id) {
+        chrome.tabs
+          .sendMessage(tabs[0].id, {
+            type: "TRANSLATE_SELECTION",
+            text: currentText,
+          })
+          .catch((err) => console.error("Sidepanel translation error:", err));
+      }
     });
+  }
 });
 $("go-autoagent")?.addEventListener("click", () =>
   navigateTo("agent", "Auto-Agent"),
@@ -724,19 +735,19 @@ $("snap-save-btn")?.addEventListener("click", () => {
   if (rawText) handleSave(rawText);
 });
 
-$("lang-select")?.addEventListener("change", (e) => {
+$("lang-select")?.addEventListener("input", (e) => {
   langVal = e.target.value;
   chrome.storage.local.set({ targetLanguage: langVal });
 });
-$("ws-input")?.addEventListener("change", (e) => {
+$("ws-input")?.addEventListener("input", (e) => {
   wsVal = e.target.value || "General";
   chrome.storage.local.set({ workspaceId: wsVal });
 });
-$("ws-lang-select")?.addEventListener("change", (e) => {
+$("ws-lang-select")?.addEventListener("input", (e) => {
   langVal = e.target.value;
   chrome.storage.local.set({ targetLanguage: langVal });
 });
-$("ws-ws-input")?.addEventListener("change", (e) => {
+$("ws-ws-input")?.addEventListener("input", (e) => {
   wsVal = e.target.value || "General";
   chrome.storage.local.set({ workspaceId: wsVal });
 });

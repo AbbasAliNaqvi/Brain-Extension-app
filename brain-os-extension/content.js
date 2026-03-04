@@ -2,7 +2,7 @@
   "use strict";
   if (window.__brainOS_v62) return;
   window.__brainOS_v62 = true;
-  console.log("🚀 [Brain OS] Content script ALIVE (v62 - Professional UI)");
+  console.log("[Brain OS] Content script ALIVE (v62 - Professional UI)");
 
   const API_BASE = "http://localhost:5050";
   const isYouTube = location.hostname.includes("youtube.com");
@@ -172,42 +172,70 @@
     sendMsg({ type: "TOOLBAR_ACTION", mode: action, text: currentText });
   }
 
-  async function _runMagicTranslate(text) {
-    let token, lang;
-    try {
-      ({ token, targetLanguage: lang = "Hindi" } =
-        await chrome.storage.local.get(["token", "targetLanguage"]));
-    } catch {
-      return;
-    }
-    if (!token) return;
-    const sel = window.getSelection();
-    if (!sel?.rangeCount) return;
-    const range = sel.getRangeAt(0),
-      wrapper = document.createElement("span");
-    try {
-      range.surroundContents(wrapper);
-    } catch {
-      return;
-    }
-    wrapper.style.opacity = "0.5";
-    try {
-      const res = await fetch(`${API_BASE}/brain/translate`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ text, targetLanguage: lang }),
-      });
-      const data = await res.json();
-      wrapper.textContent = data.translation;
-      wrapper.title = `Original: ${text}`;
-      wrapper.style.opacity = "1";
-      wrapper.style.background = "rgba(16,185,129,0.1)";
-      sel.removeAllRanges();
-    } catch {}
+async function _runMagicTranslate(text) {
+  console.log("[Brain OS] Starting translation for:", text);
+
+  let { token, targetLanguage } = await chrome.storage.local.get(["token", "targetLanguage"]);
+  
+  if (!token) {
+    console.error("[Brain OS] Auth token missing. Cannot call translation API.");
+    return;
   }
+
+  const sel = window.getSelection();
+  if (!sel || !sel.rangeCount) {
+    console.error("[Brain OS] No active DOM selection found.");
+    return;
+  }
+
+  const range = sel.getRangeAt(0);
+  const wrapper = document.createElement("span");
+  wrapper.style.opacity = "0.6";
+  wrapper.style.backgroundColor = "rgba(16, 185, 129, 0.2)";
+
+  try {
+    const contents = range.extractContents();
+    wrapper.appendChild(contents);
+    range.insertNode(wrapper);
+  } catch (e) {
+    console.error("[Brain OS] DOM manipulation failed:", e);
+    return;
+  }
+
+  console.log(`[Brain OS] Calling API: ${API_BASE}/brain/translate`);
+
+  try {
+    const res = await fetch(`${API_BASE}/brain/translate`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        text: text,
+        targetLanguage: (targetLanguage || "hindi").toLowerCase().trim()
+      }),
+    });
+
+    const data = await res.json();
+    console.log("[Brain OS] API Response:", data);
+
+    if (res.ok && data.status === "OK") {
+      wrapper.textContent = data.translation;
+      wrapper.style.opacity = "1";
+      wrapper.style.backgroundColor = "rgba(16, 185, 129, 0.1)";
+      wrapper.style.borderRadius = "3px";
+      wrapper.title = `Original: ${text}`;
+    } else {
+      console.error("[Brain OS] API returned error:", data.message);
+      wrapper.textContent = text; 
+      wrapper.style.backgroundColor = "rgba(239, 68, 68, 0.2)"; 
+    }
+  } catch (err) {
+    console.error("[Brain OS] Network or Fetch Error:", err);
+    wrapper.textContent = text; 
+  }
+}
 
   let paletteEl = null;
   let allTabsMap = {};
@@ -592,6 +620,12 @@
     if (msg.type === "QUICK_SAVE") {
       const text = window.getSelection()?.toString()?.trim();
       if (text) sendMsg({ type: "TOOLBAR_ACTION", mode: "save", text });
+      sendResponse({ ok: true });
+      return true;
+    }
+    
+    if (msg.type === "TRANSLATE_SELECTION") {
+      _runMagicTranslate(msg.text);
       sendResponse({ ok: true });
       return true;
     }
